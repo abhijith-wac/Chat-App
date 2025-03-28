@@ -1,33 +1,38 @@
-// src/App.jsx
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './pages/Login/Login';
-import Chat from './pages/Chat/Chat';
-import Profile from './pages/ProfileUpdate/ProfileUpdate';
-import { ToastContainer } from 'react-toastify';
+import React from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './styles.css';
-import { useAtom } from 'jotai';
-import { userAtom } from './atoms/userAtom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import Login from "./components/Login";
+import MainLayout from "./components/MainLayout";
+import Chat from "./pages/Chat";
+import { userAtom } from "./atoms/authAtom";
+import { useAtom } from "jotai";
+import Home from "./pages/Home";
 
-const PrivateRoute = ({ element }) => {
-  const [user] = useAtom(userAtom);
-  return user ? element : <Navigate to="/login" />;
-};
+const App = () => {
+  const [user] = useAtom(userAtom); // Get user authentication state
 
-function App() {
   return (
     <Router>
-      <ToastContainer />
       <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/chat" element={<PrivateRoute element={<Chat />} />} />
-        <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
-        <Route path="*" element={<Navigate to="/login" />} />
+        {/* Login Page */}
+        <Route path="/" element={<Login />} />
+
+        {/* Protected Route */}
+        <Route
+          path="/mainchatpage"
+          element={user ? <MainLayout /> : <Navigate to="/" />}
+        >
+          {/* Default page inside MainLayout (home screen) */}
+          <Route index element={<Home />} />
+
+          {/* Dynamic chat route */}
+          <Route path="chat/:userId" element={<Chat />} />
+        </Route>
+        {/* Redirect unknown routes to login */}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   );
-}
+};
 
 export default App;
