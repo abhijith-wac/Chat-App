@@ -1,91 +1,149 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
-import { Container, Card, Form, Button, ListGroup, InputGroup } from "react-bootstrap";
+import { format } from "date-fns";
+import { Container, Card, Form, Button, ListGroup, InputGroup, Dropdown } from "react-bootstrap";
 import { useAtom } from "jotai";
 import { userAtom } from "../atoms/authAtom";
-import useMessages from "../hooks/useMessages";
-import useUserDetails from "../hooks/useUserDetails"; // Fetch user details
-import { sendMessage } from "../services/sendMessage";
+import useMessages, { deleteMessage } from "../hooks/useMessages";
+import useUserDetails from "../hooks/useUserDetails";
 import { FaRegSmile, FaMicrophone, FaPaperPlane } from "react-icons/fa";
+import { handleSend, handleKeyDown } from "../utils/chatHandlers";
+import "../styles/chat.css"; // Import the external stylesheet
 
 const Chat = () => {
-  const { userId } = useParams();
-  const [loggedInUser] = useAtom(userAtom);
-  const chatId = [loggedInUser?.uid, userId].sort().join("_");
-  const { data: messages } = useMessages(chatId);
-  const { data: userDetails } = useUserDetails(userId);
-  const [text, setText] = useState("");
+    const { userId } = useParams();
+    const [loggedInUser] = useAtom(userAtom);
+    const chatId = [loggedInUser?.uid, userId].sort().join("_");
+    const { data: messages } = useMessages(chatId, loggedInUser?.uid);
+    const { data: userDetails } = useUserDetails(userId);
+    const [text, setText] = useState("");
 
-  const handleSend = async () => {
-    if (!text.trim()) return;
-    await sendMessage(chatId, loggedInUser?.uid, userId, text);
-    setText("");
-  };
+    // Create bound versions of the handlers for this component's specific context
+    const sendMessage = () => {
+        handleSend(chatId, loggedInUser?.uid, userId, text, setText);
+    };
 
-  return (
-    <Container className="d-flex flex-column vh-100 p-0">
-      {/* Chat Header */}
-      <Card.Header className="bg-success text-white py-2 d-flex align-items-center px-3 shadow-sm">
-        {/* Profile Image */}
-        <img
-          src={`https://ui-avatars.com/api/?name=${userDetails?.displayName || "User"}&background=random`}
-          alt="User Avatar"
-          className="rounded-circle me-2"
-          style={{ width: "45px", height: "45px", objectFit: "cover" }}
-        />
-        {/* Name & Status */}
-        <div>
-          <h6 className="m-0 fw-bold" style={{ fontSize: "16px" }}>
-            {userDetails?.displayName || "User"}
-          </h6>
-          <small className="text-light" style={{ fontSize: "12px" }}>Online</small>
-        </div>
-      </Card.Header>
+    const onKeyDown = (e) => {
+        handleKeyDown(e, sendMessage);
+    };
 
-      {/* Chat Messages */}
-      <ListGroup className="flex-grow-1 overflow-auto p-3" style={{ background: "#e5ddd5" }}>
-        {messages?.map((msg) => (
-          <ListGroup.Item
-            key={msg.id}
-            className={`d-flex ${msg.senderId === loggedInUser?.uid ? "justify-content-end" : "justify-content-start"} border-0`}
-            style={{ background: "transparent" }}
-          >
-            <div
-              className={`p-2 rounded text-white shadow-sm ${
-                msg.senderId === loggedInUser?.uid ? "bg-success" : "bg-secondary"
-              }`}
-              style={{ maxWidth: "75%", fontSize: "14px" }}
-            >
-              {msg.text}
-            </div>
-          </ListGroup.Item>
-        ))}
-      </ListGroup>
+    return (
+        <Container className="d-flex flex-column vh-100 p-0">
+            {/* Chat Header */}
+            <Card.Header className="chat-header">
+                <div className="d-flex align-items-center">
+                    <img
+                        src={`https://ui-avatars.com/api/?name=${userDetails?.displayName || "User"}&background=random`}
+                        alt="User Avatar"
+                        className="chat-avatar"
+                    />
+                    <div>
+                        <h6 className="chat-username">{userDetails?.displayName || "User"}</h6>
+                        <small className="chat-status text-light">
+                            {userDetails?.online
+                                ? "Online"
+                                : userDetails?.lastSeen
+                                ? `Last seen ${format(userDetails.lastSeen.toDate(), "MMM d, h:mm a")}`
+                                : "Offline"}
+                        </small>
+                    </div>
+                </div>
+            </Card.Header>
 
-      {/* Message Input */}
-      <Card.Footer className="p-2 bg-light">
-        <InputGroup>
-          <Button variant="outline-secondary">
-            <FaRegSmile />
-          </Button>
-          <Form.Control
-            type="text"
-            placeholder="Type a message..."
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            style={{ fontSize: "14px" }}
-          />
-          <Button variant="outline-secondary">
-            <FaMicrophone />
-          </Button>
-          <Button variant="success" onClick={handleSend}>
-            <FaPaperPlane />
-          </Button>
-        </InputGroup>
-      </Card.Footer>
-    </Container>
-  );
+            {/* Chat Messages */}
+            <ListGroup className="chat-messages-container">
+                {messages?.map((msg) => {
+                    const isSender = msg.senderId === loggedInUser?.uid;
+                    return (
+                        <ListGroup.Item key={msg.id} className="chat-message-item">
+                            <div className={`d-flex ${isSender ? "justify-content-end" : "justify-content-start"}`}>
+                                <div className="chat-message-container">
+                                    {/* Message Box */}
+                                    <div
+                                        className={`chat-message-content ${
+                                            isSender ? "chat-message-sender" : "chat-message-receiver"
+                                        }`}
+                                    >
+                                        {msg.text}
+                                    </div>
+
+                                    {/* Timestamp and Status */}
+                                    <div
+                                        className={`chat-message-meta ${
+                                            isSender ? "justify-content-end" : "justify-content-start"
+                                        }`}
+                                    >
+                                        <small className="chat-message-time">
+                                            {msg.timestamp ? format(new Date(msg.timestamp.seconds * 1000), "h:mm a") : ""}
+                                        </small>
+
+                                        {/* Status Indicator - Only for sender */}
+                                        {isSender && (
+                                            <small
+                                                className={`chat-message-status ${
+                                                    msg.status === "seen"
+                                                        ? "chat-message-status-seen"
+                                                        : "chat-message-status-delivered"
+                                                }`}
+                                            >
+                                                {msg.status === "seen" ? "✓✓" : msg.status === "delivered" ? "✓✓" : "✓"}
+                                            </small>
+                                        )}
+
+                                        {/* Delete Option - Only for sender */}
+                                        {isSender && (
+                                            <Dropdown className="ms-2" align="end">
+                                                <Dropdown.Toggle
+                                                    variant="link"
+                                                    bsPrefix="p-0"
+                                                    id={`dropdown-${msg.id}`}
+                                                    className="text-muted chat-dropdown-toggle"
+                                                >
+                                                    <small>⋮</small>
+                                                </Dropdown.Toggle>
+                                                <Dropdown.Menu size="sm">
+                                                    <Dropdown.Item
+                                                        className="text-danger chat-dropdown-item"
+                                                        onClick={() => deleteMessage(chatId, msg.id)}
+                                                    >
+                                                        Delete
+                                                    </Dropdown.Item>
+                                                </Dropdown.Menu>
+                                            </Dropdown>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </ListGroup.Item>
+                    );
+                })}
+            </ListGroup>
+
+            {/* Message Input */}
+            <Card.Footer className="chat-footer">
+                <InputGroup>
+                    <Button variant="link" className="text-muted border-0">
+                        <FaRegSmile />
+                    </Button>
+                    <Form.Control
+                        as="textarea"
+                        rows={1}
+                        placeholder="Type a message..."
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                        onKeyDown={onKeyDown}
+                        className="chat-input"
+                    />
+                    <Button variant="link" className="text-muted border-0">
+                        <FaMicrophone />
+                    </Button>
+                    <Button variant="success" onClick={sendMessage} className="chat-send-button">
+                        <FaPaperPlane size={14} />
+                    </Button>
+                </InputGroup>
+            </Card.Footer>
+        </Container>
+    );
 };
 
 export default Chat;
