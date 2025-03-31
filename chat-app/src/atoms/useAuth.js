@@ -26,7 +26,9 @@ const useAuth = () => {
 
       await setDoc(doc(db, "users", user.uid), userData);
 
-      setUser(userData); // Set userAtom with Firestore data
+      setUser(userData);
+      localStorage.setItem("user", JSON.stringify(userData)); // Persist user
+
       return { success: true };
     } catch (error) {
       return { success: false, error: error.message };
@@ -43,11 +45,15 @@ const useAuth = () => {
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
 
+      let userData;
       if (userSnap.exists()) {
-        setUser(userSnap.data()); // Set userAtom with Firestore user data
+        userData = userSnap.data();
       } else {
-        setUser(user); // Fallback if Firestore data doesn't exist
+        userData = { uid: user.uid, email: user.email }; // Fallback if Firestore data doesn't exist
       }
+
+      setUser(userData);
+      localStorage.setItem("user", JSON.stringify(userData)); // Persist user
 
       return { success: true };
     } catch (error) {

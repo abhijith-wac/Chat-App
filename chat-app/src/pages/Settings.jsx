@@ -19,7 +19,7 @@ const Settings = () => {
     <div className="settings-container position-absolute w-100 p-3" style={{ bottom: 0 }}>
       {/* Drop-up Menu */}
       {showMenu && (
-        <ListGroup className="bg-white shadow-sm rounded position-absolute w-100 mb-2" style={{ bottom: "45px" }}>
+        <ListGroup className="bg-white shadow-sm rounded position-absolute w-90 mb-2" style={{ bottom: "45px" }}>
           <ListGroup.Item action className="d-flex align-items-center">
             <FaUser className="me-2" />
             Profile

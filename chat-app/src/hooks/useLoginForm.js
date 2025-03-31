@@ -10,32 +10,46 @@ const useLoginForm = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: "", password: "", displayName: "" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false); // Add loading state
 
-  // Handle input change
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true); // Start loading
 
-    let response;
-    if (isSignup) {
-      response = await signup(formData.email, formData.password, formData.displayName);
-    } else {
-      response = await login(formData.email, formData.password);
-    }
+    try {
+      let response;
+      if (isSignup) {
+        response = await signup(formData.email, formData.password, formData.displayName);
+      } else {
+        response = await login(formData.email, formData.password);
+      }
 
-    if (response.success) {
-      navigate("/mainchatpage"); // Navigate only if successful
-    } else {
-      setError(response.error); // Display error if signup/login fails
+      if (response.success) {
+        navigate("/mainchatpage");
+      } else {
+        setError(response.error);
+      }
+    } catch (err) {
+      setError("An unexpected error occurred");
+    } finally {
+      setLoading(false); // End loading regardless of outcome
     }
   };
 
-  return { isSignup, setIsSignup, formData, error, handleChange, handleSubmit };
+  return { 
+    isSignup, 
+    setIsSignup, 
+    formData, 
+    error, 
+    loading,  // Return loading state
+    handleChange, 
+    handleSubmit 
+  };
 };
 
 export default useLoginForm;
