@@ -1,17 +1,35 @@
-import { db } from "../services/config";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, doc, updateDoc, getDoc } from "firebase/firestore";
+import { db } from "./config";
+
+// Function to check if the recipient is online
+const isRecipientOnline = async (receiverId) => {
+  const userRef = doc(db, "users", receiverId);
+  const userSnap = await getDoc(userRef);
+  return userSnap.exists() && userSnap.data().isOnline;
+};
 
 export const sendMessage = async (chatId, senderId, receiverId, text) => {
-  if (!chatId || !text.trim()) return;
+  const messagesRef = collection(db, "chats", chatId, "messages");
 
-  try {
-    await addDoc(collection(db, "chats", chatId, "messages"), {
-      senderId,
-      receiverId,
-      text,
-      timestamp: serverTimestamp(),
-    });
-  } catch (error) {
-    console.error("Error sending message:", error);
+  // Initially, message is "sent"
+  const messageData = {
+    senderId,
+    receiverId,
+    text,
+    timestamp: serverTimestamp(),
+    status: "sent",
+  };
+
+  // Check if recipient is online before sending
+  if (await isRecipientOnline(receiverId)) {
+    messageData.status = "delivered";
   }
+
+  await addDoc(messagesRef, messageData);
+};
+
+// Mark a message as "seen" when recipient opens the chat
+export const markMessageAsSeen = async (chatId, messageId) => {
+  const messageRef = doc(db, "chats", chatId, "messages", messageId);
+  await updateDoc(messageRef, { status: "seen" });
 };

@@ -1,14 +1,15 @@
 import React from "react";
 import SearchUser from "./SearchUser";
 import Users from "./Users";
-import { Card } from "react-bootstrap";
+import Settings from "./Settings";
 
 const Sidebar = () => {
   return (
-    <Card className="vh-100 border-end" style={{ maxWidth: "350px" }}>
+    <div className="sidebar d-flex flex-column h-100 position-relative">
       <SearchUser />
       <Users />
-    </Card>
+      <Settings /> {/* Always at the bottom */}
+    </div>
   );
 };
 
