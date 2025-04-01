@@ -43,10 +43,14 @@ const Chat = () => {
                             {userDetails?.online
                                 ? "Online"
                                 : userDetails?.lastSeen
-                                ? `Last seen ${format(userDetails.lastSeen.toDate(), "MMM d, h:mm a")}`
-                                : "Offline"}
+                                    ? `Last seen ${format(userDetails?.lastSeen?.toDate?.() || new Date(), "MMM d, h:mm a")}`
+                                    : "Offline"}
                         </small>
                     </div>
+
+                    {console.log("UserDetails:", userDetails)}
+                    {console.log("LastSeen:", userDetails?.lastSeen)}  {/* Log lastSeen to check its value */}
+
                 </div>
             </Card.Header>
 
@@ -60,18 +64,16 @@ const Chat = () => {
                                 <div className="chat-message-container">
                                     {/* Message Box */}
                                     <div
-                                        className={`chat-message-content ${
-                                            isSender ? "chat-message-sender" : "chat-message-receiver"
-                                        }`}
+                                        className={`chat-message-content ${isSender ? "chat-message-sender" : "chat-message-receiver"
+                                            }`}
                                     >
                                         {msg.text}
                                     </div>
 
                                     {/* Timestamp and Status */}
                                     <div
-                                        className={`chat-message-meta ${
-                                            isSender ? "justify-content-end" : "justify-content-start"
-                                        }`}
+                                        className={`chat-message-meta ${isSender ? "justify-content-end" : "justify-content-start"
+                                            }`}
                                     >
                                         <small className="chat-message-time">
                                             {msg.timestamp ? format(new Date(msg.timestamp.seconds * 1000), "h:mm a") : ""}
@@ -80,11 +82,10 @@ const Chat = () => {
                                         {/* Status Indicator - Only for sender */}
                                         {isSender && (
                                             <small
-                                                className={`chat-message-status ${
-                                                    msg.status === "seen"
-                                                        ? "chat-message-status-seen"
-                                                        : "chat-message-status-delivered"
-                                                }`}
+                                                className={`chat-message-status ${msg.status === "seen"
+                                                    ? "chat-message-status-seen"
+                                                    : "chat-message-status-delivered"
+                                                    }`}
                                             >
                                                 {msg.status === "seen" ? "✓✓" : msg.status === "delivered" ? "✓✓" : "✓"}
                                             </small>

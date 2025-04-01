@@ -10,7 +10,7 @@ const useLoginForm = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: "", password: "", displayName: "" });
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // Add loading state
+  const [loading, setLoading] = useState(false); 
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
