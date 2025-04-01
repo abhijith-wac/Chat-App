@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { Container, Card, Form, Button, ListGroup, InputGroup, Dropdown } from "react-bootstrap";
@@ -17,10 +17,24 @@ const Chat = () => {
     const { data: messages } = useMessages(chatId, loggedInUser?.uid);
     const { data: userDetails } = useUserDetails(userId);
     const [text, setText] = useState("");
+    
+    // Add ref for the messages container
+    const messagesEndRef = useRef(null);
+
+    // Function to scroll to the bottom of the messages
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    // Scroll to bottom when messages change or when component mounts
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
 
     // Create bound versions of the handlers for this component's specific context
     const sendMessage = () => {
         handleSend(chatId, loggedInUser?.uid, userId, text, setText);
+        // No need to call scrollToBottom here as it will be triggered by the useEffect
     };
 
     const onKeyDown = (e) => {
@@ -47,10 +61,6 @@ const Chat = () => {
                                     : "Offline"}
                         </small>
                     </div>
-
-                    {console.log("UserDetails:", userDetails)}
-                    {console.log("LastSeen:", userDetails?.lastSeen)}  {/* Log lastSeen to check its value */}
-
                 </div>
             </Card.Header>
 
@@ -118,6 +128,8 @@ const Chat = () => {
                         </ListGroup.Item>
                     );
                 })}
+                {/* This empty div serves as a reference point for scrolling to the bottom */}
+                <div ref={messagesEndRef} />
             </ListGroup>
 
             {/* Message Input */}

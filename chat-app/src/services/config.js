@@ -3,14 +3,15 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database"; // ✅ Add Realtime Database
 
+// Firebase configuration using environment variables
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: "react-chatapp-wac.firebaseapp.com",
-  projectId: "react-chatapp-wac",
-  storageBucket: "react-chatapp-wac.appspot.com",
-  messagingSenderId: "613293126348",
-  appId: "1:613293126348:web:d3667adb5339280c0c8869",
-  databaseURL: "https://react-chatapp-wac-default-rtdb.firebaseio.com", // ✅ Add this
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL, // ✅ Add this
 };
 
 // Initialize Firebase
