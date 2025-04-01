@@ -8,7 +8,7 @@ import { ListGroup, Spinner, Image } from "react-bootstrap";
 const Users = () => {
   const navigate = useNavigate();
   const { users, isLoading, error } = useUsers();
-  const [loggedInUser] = useAtom(userAtom); // Get logged-in user data
+  const [loggedInUser] = useAtom(userAtom);
 
   if (isLoading) return <Spinner animation="border" className="d-block mx-auto mt-3" />;
   if (error) return <p className="text-danger text-center">Error fetching users.</p>;
@@ -16,7 +16,7 @@ const Users = () => {
   return (
     <ListGroup variant="flush" className="overflow-auto" style={{ maxHeight: "80vh" }}>
       {users
-        .filter((user) => user.uid !== loggedInUser?.uid) // Exclude logged-in user
+        .filter((user) => user.uid !== loggedInUser?.uid) 
         .map((user) => (
           <ListGroup.Item
             key={user.uid}
@@ -25,7 +25,7 @@ const Users = () => {
             onClick={() => navigate(`/mainchatpage/chat/${user.uid}`)}
           >
             <Image
-              src="https://via.placeholder.com/40" // Placeholder image, replace with user's avatar
+              src="https://via.placeholder.com/40" 
               roundedCircle
               width={40}
               height={40}

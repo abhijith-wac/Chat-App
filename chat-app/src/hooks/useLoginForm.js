@@ -10,7 +10,7 @@ const useLoginForm = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: "", password: "", displayName: "" });
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // Add loading state
+  const [loading, setLoading] = useState(false); 
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -19,7 +19,7 @@ const useLoginForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setLoading(true); // Start loading
+    setLoading(true); 
 
     try {
       let response;
@@ -37,7 +37,7 @@ const useLoginForm = () => {
     } catch (err) {
       setError("An unexpected error occurred");
     } finally {
-      setLoading(false); // End loading regardless of outcome
+      setLoading(false); 
     }
   };
 
@@ -46,7 +46,7 @@ const useLoginForm = () => {
     setIsSignup, 
     formData, 
     error, 
-    loading,  // Return loading state
+    loading,  
     handleChange, 
     handleSubmit 
   };

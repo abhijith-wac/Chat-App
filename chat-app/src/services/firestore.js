@@ -29,12 +29,9 @@ export async function sendPrivateMessage(senderId, receiverId, messageText) {
         const docRef = await addDoc(messagesRef, messageData);
         return docRef.id;
     } catch (error) {
-        console.error("Error sending message: ", error);
-        throw error;
-    }
+        console.error("Error sending message: ", error);    }
 }
 
-// SWR fetcher function
 export const fetchMessages = (user1Id, user2Id) => {
     return new Promise((resolve) => {
         const chatRoomId = getChatRoomId(user1Id, user2Id);

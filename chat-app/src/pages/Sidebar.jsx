@@ -8,7 +8,7 @@ const Sidebar = () => {
     <div className="sidebar d-flex flex-column h-100 position-relative">
       <SearchUser />
       <Users />
-      <Settings /> {/* Always at the bottom */}
+      <Settings /> 
     </div>
   );
 };
