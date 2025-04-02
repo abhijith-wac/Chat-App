@@ -1,59 +1,34 @@
 .search-container {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-    transition: all 0.3s ease;
-    padding: 1rem !important;
-  }
-  
-  .search-container:hover {
-    background: rgba(255, 255, 255, 0.08) !important;
+    background-color: #34495e;
+    border-bottom: 1px solid #40546a;
+    padding: 15px;
   }
   
   .search-container h5 {
-    color: #e0e0e0;
+    color: #ecf0f1;
     font-weight: 600;
-    letter-spacing: 0.5px;
-    font-size: clamp(1rem, 2.5vw, 1.25rem);
+    margin-bottom: 15px;
   }
   
-  .input-group {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 25px;
+  .search-input-group {
+    background-color: #40546a;
+    border-radius: 20px;
     overflow: hidden;
-    transition: all 0.3s ease;
-    width: 100%;
   }
   
-  .input-group:hover {
-    background: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
-  }
-  
-  .input-group-text {
-    background: transparent;
+  .search-input-group .input-group-text {
+    background-color: transparent;
     border: none;
-    color: #a0a0a0;
-    padding: 0.5rem 0.75rem;
+    color: #ecf0f1;
   }
   
-  .form-control {
-    background: transparent;
+  .search-input-group .form-control {
+    background-color: transparent;
     border: none;
-    color: #ffffff;
-    padding: 0.8rem 1rem;
-    font-size: clamp(0.875rem, 2vw, 1rem);
+    color: #ecf0f1;
+    box-shadow: none;
   }
   
-  @media (max-width: 576px) {
-    .search-container {
-      padding: 0.75rem !important;
-    }
-    
-    .input-group-text {
-      padding: 0.4rem 0.6rem;
-    }
-    
-    .form-control {
-      padding: 0.6rem 0.8rem;
-    }
+  .search-input-group .form-control::placeholder {
+    color: #b2bec3;
   }

@@ -1,46 +1,76 @@
+/* users.css */
 .users-container {
-    width: 100%;
-    display: flex;
-    background-color: white;
-    flex-direction: column;
+    flex: 1;
+    overflow-y: auto;
+    background-color: #2c3e50;
   }
   
   .user-item {
-    width: 100% !important; /* Force full width */
-    padding: 1rem 1.5rem !important;
-    border: none !important;
-    border-bottom: solid #f1f3f5 !important;
+    background-color: transparent;
+    border-bottom: 1px solid #40546a !important;
+    color: #ecf0f1;
+    padding: 12px 15px;
     transition: all 0.2s ease;
-    cursor: pointer;
-    align-self: stretch;
-    box-sizing: border-box; /* Prevent padding from affecting width */
   }
   
-  .sidebar {
-    width: 100%;
-    max-width: 300px;
-    min-width: 250px;
-    background: #ffffff;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
+  .user-item:hover {
+    background-color: #34495e;
+  }
+  
+  .user-item .user-info strong {
+    color: #ecf0f1;
+    font-weight: 500;
+  }
+  
+  .user-item .user-info p {
+    color: #b2bec3;
+    font-size: 0.8rem;
+  }
+  
+  .user-item .badge {
+    background-color: #e74c3c;
+    font-weight: 400;
+  }
+  
+  .user-avatar {
+    border: 2px solid #40546a;
+  }
+  
+  /* Text Avatar Styling */
+  .text-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
     display: flex;
-    flex-direction: column; /* Ensure children stack */
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+    text-transform: uppercase;
+    border: 2px solid rgba(255, 255, 255, 0.2);
   }
   
-  @media (max-width: 768px) {
-    .sidebar {
-      max-width: 100%;
-      min-width: unset;
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 100vh;
-      z-index: 1000;
-      transform: translateX(-100%);
-    }
-  
-    .sidebar.active {
-      transform: translateX(0);
-    }
+  /* Make sure the ListGroup has appropriate styling */
+  .users-container .list-group {
+    background-color: transparent;
+    border-radius: 0;
   }
   
+  .users-container .list-group-item-action:focus, 
+  .users-container .list-group-item-action:hover {
+    background-color: #34495e;
+    color: #ecf0f1;
+  }
+  
+  /* Ensure these styles override Bootstrap defaults */
+  .list-group-item {
+    background-color: transparent !important;
+    color: #ecf0f1 !important;
+  }
+  
+  /* Add a subtle active state */
+  .list-group-item-action.active {
+    background-color: #3498db !important;
+    border-color: #3498db !important;
+  }

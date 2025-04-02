@@ -1,3 +1,4 @@
+// Settings.jsx
 import React, { useState } from "react";
 import { Button, ListGroup } from "react-bootstrap";
 import { FaCog, FaUser, FaSignOutAlt } from "react-icons/fa";
@@ -5,7 +6,7 @@ import { useAtom } from "jotai";
 import { userAtom } from "../atoms/authAtom";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../atoms/useAuth";
-import '../styles/settings.css'
+import '../styles/settings.css';
 
 const Settings = () => {
   const [showMenu, setShowMenu] = useState(false);
@@ -20,10 +21,10 @@ const Settings = () => {
   };
 
   return (
-    <div className="settings-container position-absolute w-100 p-3" style={{ bottom: 0 }}>
+    <div className="settings-container">
       {/* Drop-up Menu */}
       {showMenu && (
-        <ListGroup className="bg-white shadow-sm rounded position-absolute w-90 mb-2" style={{ bottom: "45px" }}>
+        <ListGroup className="settings-menu position-absolute w-90 mb-2" style={{ bottom: "60px", left: "15px", right: "15px" }}>
           <ListGroup.Item action className="d-flex align-items-center">
             <FaUser className="me-2" />
             Profile
@@ -38,7 +39,7 @@ const Settings = () => {
       {/* Settings Button (Always at Bottom) */}
       <Button
         variant="light"
-        className="w-100 d-flex align-items-center justify-content-between"
+        className="settings-button w-100 d-flex align-items-center justify-content-between"
         onClick={() => setShowMenu(!showMenu)}
       >
         <span>

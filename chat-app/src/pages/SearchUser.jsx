@@ -1,17 +1,27 @@
 import React from "react";
 import { Form, InputGroup } from "react-bootstrap";
 import { BsSearch } from "react-icons/bs";
-import '../styles/searchUser.css'
+import "../styles/searchUser.css";
 
-const SearchUser = () => {
+const SearchUser = ({ searchQuery, setSearchQuery }) => {
+  const handleChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
   return (
-    <div className="p-3 bg-light border-bottom">
-      <h5 className="mb-3 fw-bold">Chats</h5>
-      <InputGroup>
+    <div className="search-container">
+      <h5 className="mb-3">Chats</h5>
+      <InputGroup className="search-input-group">
         <InputGroup.Text>
           <BsSearch />
         </InputGroup.Text>
-        <Form.Control type="text" placeholder="Search user..." />
+        <Form.Control
+          type="text"
+          placeholder="Search user..."
+          value={searchQuery}
+          onChange={handleChange} // ✅ Prevents re-creating function on every render
+          autoFocus // ✅ Fixes focus issue
+        />
       </InputGroup>
     </div>
   );
