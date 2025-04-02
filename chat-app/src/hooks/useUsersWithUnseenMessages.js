@@ -1,66 +1,94 @@
 import useSWR from "swr";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "../services/config";
 
-const fetchUsersWithUnseenMessages = async (userId, searchQuery = "") => {
-  if (!userId) return [];
+const fetchUsersWithUnseenMessages = (userId, searchQuery = "") => {
+  return new Promise((resolve, reject) => {
+    if (!userId) return resolve([]);
 
-  const usersSnapshot = await getDocs(collection(db, "users"));
-  let users = usersSnapshot.docs.map((doc) => ({ 
-    id: doc.id,
-    uid: doc.id, // Add uid for backward compatibility
-    ...doc.data() 
-  }));
+    const usersRef = collection(db, "users");
+    const usersUnsub = onSnapshot(usersRef, (usersSnapshot) => {
+      let users = usersSnapshot.docs.map((doc) => ({
+        uid: doc.id,
+        ...doc.data()
+      }));
 
-  if (searchQuery) {
-    users = users.filter((user) =>
-      user.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }
+      if (searchQuery) {
+        users = users.filter((user) =>
+          (user.displayName?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+          (user.email?.toLowerCase() || "").includes(searchQuery.toLowerCase())
+        );
+      }
 
-  const chatsQuery = query(collection(db, "chats"), where("participants", "array-contains", userId));
-  const chatsSnapshot = await getDocs(chatsQuery);
+      const chatsQuery = query(
+        collection(db, "chats"),
+        where("participants", "array-contains", userId)
+      );
 
-  let unseenMessagesCount = {};
+      const chatsUnsub = onSnapshot(chatsQuery, (chatsSnapshot) => {
+        const unseenMessagesCount = {};
 
-  for (const chatDoc of chatsSnapshot.docs) {
-    const messagesQuery = query(
-      collection(db, `chats/${chatDoc.id}/messages`),
-      where("receiverId", "==", userId),
-      where("status", "in", ["delivered"]) 
-    );
+        const chatPromises = chatsSnapshot.docs.map((chatDoc) => {
+          return new Promise((chatResolve) => {
+            const messagesQuery = query(
+              collection(db, `chats/${chatDoc.id}/messages`),
+              where("receiverId", "==", userId),
+              where("status", "==", "delivered")
+            );
 
-    const messagesSnapshot = await getDocs(messagesQuery);
+            const messagesUnsub = onSnapshot(messagesQuery, (messagesSnapshot) => {
+              messagesSnapshot.docs.forEach((doc) => {
+                const { senderId } = doc.data();
+                unseenMessagesCount[senderId] = (unseenMessagesCount[senderId] || 0) + 1;
+              });
+              chatResolve();
+            }, (error) => {
+              console.error("Message query error:", error);
+              chatResolve();
+            });
+          });
+        });
 
-    messagesSnapshot.docs.forEach((doc) => {
-      const { senderId } = doc.data();
-      unseenMessagesCount[senderId] = (unseenMessagesCount[senderId] || 0) + 1;
+        Promise.all(chatPromises)
+          .then(() => {
+            const updatedUsers = users.map((user) => ({
+              ...user,
+              unseenMessages: unseenMessagesCount[user.uid] || 0,
+            }));
+            resolve(updatedUsers);
+          })
+          .catch((error) => {
+            console.error("Promise.all error:", error);
+            reject(error);
+          });
+      }, (error) => {
+        console.error("Chats query error:", error);
+        reject(error);
+      });
+    }, (error) => {
+      console.error("Users query error:", error);
+      reject(error);
     });
-  }
-
-  return users.map((user) => ({
-    ...user,
-    unseenMessages: unseenMessagesCount[user.id] || 0, // Use user.id instead of user.uid
-  }));
+  });
 };
 
 const useUsersWithUnseenMessages = (userId, searchQuery = "") => {
-  const { data, error, isValidating } = useSWR(
+  const { data, error, isValidating, mutate } = useSWR(
     userId ? ["usersWithMessages", userId, searchQuery] : null,
     () => fetchUsersWithUnseenMessages(userId, searchQuery),
     {
-      keepPreviousData: true, 
-      refreshInterval: 10000, 
-      revalidateOnFocus: true, 
+      refreshInterval: 5000,
+      revalidateOnFocus: true,
+      dedupingInterval: 2000,
     }
   );
 
   return {
     users: data || [],
     isLoading: !data && !error,
-    isValidating, 
+    isValidating,
     error,
+    mutate,
   };
 };
 
