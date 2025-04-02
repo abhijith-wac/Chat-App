@@ -1,0 +1,71 @@
+/* Main Layout */
+.main-layout {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+    background: #f5f7fa;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 100%;
+    max-width: 300px;
+    min-width: 250px;
+    background: #ffffff;
+    transition: transform 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    padding: clamp(1rem, 2vw, 2rem);
+    background: #ffffff;
+    box-shadow: inset 2px 0 10px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .main-layout {
+        display: flex;
+        flex-direction: row; /* Ensures it stays side-by-side */
+        position: relative;
+    }
+
+    .sidebar {
+        width: 80%;
+        max-width: 270px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 1000;
+        transform: translateX(-100%);
+        box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        width: 100%;
+        flex: 1;
+        height: 100vh;
+        padding: clamp(0.75rem, 1.5vw, 1rem);
+        transition: margin-left 0.3s ease-in-out;
+    }
+}
+
+@media (max-width: 576px) {
+    .main-content {
+        padding: 0.5rem;
+    }
+}

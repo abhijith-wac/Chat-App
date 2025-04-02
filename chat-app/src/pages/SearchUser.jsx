@@ -1,6 +1,7 @@
 import React from "react";
 import { Form, InputGroup } from "react-bootstrap";
 import { BsSearch } from "react-icons/bs";
+import '../styles/searchUser.css'
 
 const SearchUser = () => {
   return (

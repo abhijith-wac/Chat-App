@@ -5,17 +5,18 @@ import { useAtom } from "jotai";
 import { userAtom } from "../atoms/authAtom";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../atoms/useAuth";
+import '../styles/settings.css'
 
 const Settings = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [user, setUser] = useAtom(userAtom);
   const navigate = useNavigate();
-  const { logout } = useAuth(); // ✅ Get logout function
+  const { logout } = useAuth(); 
 
   const handleLogout = async () => {
-    await logout(); // ✅ Call logout function from useAuth
-    setUser(null); // ✅ Clear user state
-    navigate("/"); // ✅ Redirect to login page
+    await logout(); 
+    setUser(null); 
+    navigate("/"); 
   };
 
   return (

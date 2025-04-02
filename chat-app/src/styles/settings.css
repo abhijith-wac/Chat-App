@@ -1,0 +1,55 @@
+.settings-container {
+  background: rgba(209, 19, 19, 0.03);
+  border-top: 1px solid rgba(189, 0, 0, 0.1);
+  padding: clamp(0.75rem, 2vw, 1rem) !important;
+}
+
+.btn-light {
+  background: linear-gradient(45deg, #6b6bff, #4e4e7e);
+  border: none;
+  color: #ffffff;
+  padding: clamp(0.6rem, 1.5vw, 0.8rem) clamp(0.75rem, 2vw, 1rem);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  width: 100%;
+  font-size: clamp(0.875rem, 2vw, 1rem);
+}
+
+.btn-light:hover {
+  background: linear-gradient(45deg, #7c7cff, #5f5f9e);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(107, 107, 255, 0.3);
+}
+
+.list-group {
+  width: clamp(180px, 90%, 200px) !important;
+  border-radius: 10px;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+  bottom: clamp(2.5rem, 8vw, 3rem);
+}
+
+.list-group-item {
+  background: #ffffff;
+  color: #333;
+  border: none;
+  padding: clamp(0.6rem, 1.5vw, 0.8rem) clamp(0.75rem, 2vw, 1rem);
+  transition: all 0.3s ease;
+  font-size: clamp(0.875rem, 2vw, 1rem);
+}
+
+.list-group-item:hover {
+  background: #f5f5f5;
+  padding-left: clamp(1rem, 2.5vw, 1.2rem);
+}
+
+@media (max-width: 576px) {
+  .settings-container {
+    padding: 0.5rem !important;
+  }
+  
+  .list-group {
+    width: 90% !important;
+    left: 5%;
+  }
+}

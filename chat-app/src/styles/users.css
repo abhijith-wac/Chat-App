@@ -1,0 +1,46 @@
+.users-container {
+    width: 100%;
+    display: flex;
+    background-color: white;
+    flex-direction: column;
+  }
+  
+  .user-item {
+    width: 100% !important; /* Force full width */
+    padding: 1rem 1.5rem !important;
+    border: none !important;
+    border-bottom: solid #f1f3f5 !important;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    align-self: stretch;
+    box-sizing: border-box; /* Prevent padding from affecting width */
+  }
+  
+  .sidebar {
+    width: 100%;
+    max-width: 300px;
+    min-width: 250px;
+    background: #ffffff;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column; /* Ensure children stack */
+  }
+  
+  @media (max-width: 768px) {
+    .sidebar {
+      max-width: 100%;
+      min-width: unset;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      z-index: 1000;
+      transform: translateX(-100%);
+    }
+  
+    .sidebar.active {
+      transform: translateX(0);
+    }
+  }
+  

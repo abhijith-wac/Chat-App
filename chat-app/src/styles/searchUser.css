@@ -1,0 +1,59 @@
+.search-container {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    transition: all 0.3s ease;
+    padding: 1rem !important;
+  }
+  
+  .search-container:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+  }
+  
+  .search-container h5 {
+    color: #e0e0e0;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
+  }
+  
+  .input-group {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 25px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    width: 100%;
+  }
+  
+  .input-group:hover {
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+  }
+  
+  .input-group-text {
+    background: transparent;
+    border: none;
+    color: #a0a0a0;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .form-control {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    padding: 0.8rem 1rem;
+    font-size: clamp(0.875rem, 2vw, 1rem);
+  }
+  
+  @media (max-width: 576px) {
+    .search-container {
+      padding: 0.75rem !important;
+    }
+    
+    .input-group-text {
+      padding: 0.4rem 0.6rem;
+    }
+    
+    .form-control {
+      padding: 0.6rem 0.8rem;
+    }
+  }

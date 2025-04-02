@@ -13,6 +13,7 @@
     "axios": "^1.8.4",
     "bootstrap": "^5.3.3",
     "date-fns": "^4.1.0",
+    "emoji-picker-react": "^4.12.2",
     "firebase": "^11.5.0",
     "jotai": "^2.12.2",
     "react": "^19.0.0",
