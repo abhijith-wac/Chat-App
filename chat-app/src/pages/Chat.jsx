@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { format } from "date-fns";
-import { Container, Form, Button } from "react-bootstrap";
+import { Form, Button } from "react-bootstrap";
 import { useAtom } from "jotai";
 import { userAtom } from "../atoms/authAtom";
-import useMessages, { deleteMessage } from "../hooks/useMessages";
+import useMessages, { deleteMessage, editMessage } from "../hooks/useMessages";
 import useUserDetails from "../hooks/useUserDetails";
-import { FaRegSmile, FaPaperPlane, FaEllipsisV, FaArrowLeft, FaTrash } from "react-icons/fa";
-import { BsMic, BsImageFill, BsCheck2All, BsCheck2 } from "react-icons/bs";
+import { FaPaperPlane, FaArrowLeft, FaTrash, FaEdit } from "react-icons/fa";
+import { BsCheck2All, BsCheck2 } from "react-icons/bs";
 import { handleSend, handleKeyDown } from "../utils/chatHandlers";
-import EmojiPicker from "emoji-picker-react";
 import "../styles/chat.css";
 
 const Chat = () => {
@@ -18,14 +17,18 @@ const Chat = () => {
     const chatId = [loggedInUser?.uid, userId].sort().join("_");
     const { data: messages } = useMessages(chatId, loggedInUser?.uid);
     const { data: userDetails } = useUserDetails(userId);
+    
     const [text, setText] = useState("");
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [showOptions, setShowOptions] = useState(null);
+    const [editingMessageId, setEditingMessageId] = useState(null); // Track the message being edited
+    const [editText, setEditText] = useState(""); // Store edited text
+
     const messagesEndRef = useRef(null);
     const messageContainerRef = useRef(null);
 
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
     useEffect(() => {
@@ -51,14 +54,34 @@ const Chat = () => {
         setShowOptions(showOptions === msgId ? null : msgId);
     };
 
+    // Start editing a message
+    const startEditing = (msg) => {
+        setEditingMessageId(msg.id);
+        setEditText(msg.text);
+    };
+
+    // Cancel editing
+    const cancelEditing = () => {
+        setEditingMessageId(null);
+        setEditText("");
+    };
+
+    // Save edited message
+    const saveEditedMessage = async (msg) => {
+        if (editText.trim() && editText !== msg.text) {
+            await editMessage(chatId, msg.id, editText);
+        }
+        cancelEditing();
+    };
+
     // Group messages by date
     const groupMessagesByDate = () => {
         const groups = {};
-        messages?.forEach(msg => {
-            const date = msg.timestamp ? 
-                format(new Date(msg.timestamp.seconds * 1000), "MMMM d, yyyy") : 
-                "Today";
-            
+        messages?.forEach((msg) => {
+            const date = msg.timestamp
+                ? format(new Date(msg.timestamp.seconds * 1000), "MMMM d, yyyy")
+                : "Today";
+
             if (!groups[date]) {
                 groups[date] = [];
             }
@@ -96,14 +119,6 @@ const Chat = () => {
                         </span>
                     </div>
                 </div>
-                <div className="chat-header-actions">
-                    <Button variant="link" className="header-action-btn">
-                        <BsImageFill />
-                    </Button>
-                    <Button variant="link" className="header-action-btn">
-                        <FaEllipsisV />
-                    </Button>
-                </div>
             </div>
 
             {/* Messages Container */}
@@ -113,45 +128,65 @@ const Chat = () => {
                         <div className="date-divider">
                             <span>{date}</span>
                         </div>
-                        
+
                         {dateMessages.map((msg) => {
                             const isSender = msg.senderId === loggedInUser?.uid;
                             return (
-                                <div 
-                                    key={msg.id} 
-                                    className={`message-wrapper ${isSender ? "sender" : "receiver"}`}
-                                >
-                                    <div 
+                                <div key={msg.id} className={`message-wrapper ${isSender ? "sender" : "receiver"}`}>
+                                    <div
                                         className={`message-bubble ${isSender ? "sender-bubble" : "receiver-bubble"}`}
                                         onClick={() => toggleMessageOptions(msg.id)}
+                                        onDoubleClick={() => startEditing(msg)}
                                     >
-                                        <p className="message-text">{msg.text}</p>
+                                        {editingMessageId === msg.id ? (
+                                            <Form.Control
+                                                as="textarea"
+                                                value={editText}
+                                                onChange={(e) => setEditText(e.target.value)}
+                                                onKeyDown={(e) => e.key === "Enter" && saveEditedMessage(msg)}
+                                                className="edit-message-input"
+                                            />
+                                        ) : (
+                                            <p className="message-text">
+                                                {msg.text} {msg.edited && <small>(edited)</small>}
+                                            </p>
+                                        )}
+
                                         <div className="message-meta">
                                             <span className="message-time">
-                                                {msg.timestamp ? format(new Date(msg.timestamp.seconds * 1000), "h:mm a") : ""}
+                                                {msg.timestamp
+                                                    ? format(new Date(msg.timestamp.seconds * 1000), "h:mm a")
+                                                    : ""}
                                             </span>
                                             {isSender && (
                                                 <span className="message-status">
-                                                    {msg.status === "seen" ? <BsCheck2All className="seen" /> : 
+                                                    {msg.status === "seen" ? <BsCheck2All className="seen" /> :
                                                      msg.status === "delivered" ? <BsCheck2All /> : <BsCheck2 />}
                                                 </span>
                                             )}
                                         </div>
                                     </div>
-                                    
+
                                     {isSender && showOptions === msg.id && (
                                         <div className="message-options">
-                                            <Button 
-                                                variant="danger" 
-                                                size="sm" 
-                                                onClick={() => {
-                                                    deleteMessage(chatId, msg.id);
-                                                    setShowOptions(null);
-                                                }}
-                                            >
-                                                <FaTrash /> Delete
-                                            </Button>
-                                        </div>
+                                        <Button 
+                                            variant="outline-primary" 
+                                            size="xs" 
+                                            className="action-btn" 
+                                            onClick={() => startEditing(msg)}
+                                        >
+                                            <FaEdit className="icon" /> Edit
+                                        </Button>
+                                        <Button 
+                                            variant="outline-danger" 
+                                            size="xs" 
+                                            className="action-btn" 
+                                            onClick={() => deleteMessage(chatId, msg.id)}
+                                        >
+                                            <FaTrash className="icon" /> Delete
+                                        </Button>
+                                    </div>
+                                    
                                     )}
                                 </div>
                             );
@@ -163,50 +198,17 @@ const Chat = () => {
 
             {/* Input Area */}
             <div className="chat-input-area">
-                <div className="input-actions">
-                    <Button 
-                        variant="link" 
-                        className="input-action-btn"
-                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    >
-                        <FaRegSmile />
-                    </Button>
-                    <Button variant="link" className="input-action-btn">
-                        <BsImageFill />
-                    </Button>
-                </div>
-                
-                <div className="input-container">
-                    <Form.Control
-                        as="textarea"
-                        placeholder="Type a message..."
-                        value={text}
-                        onChange={(e) => setText(e.target.value)}
-                        onKeyDown={onKeyDown}
-                        className="message-input"
-                    />
-                </div>
-                
-                <div className="send-actions">
-                    {text.trim() ? (
-                        <Button 
-                            className="send-button" 
-                            onClick={sendMessage}
-                        >
-                            <FaPaperPlane />
-                        </Button>
-                    ) : (
-                        <Button className="mic-button">
-                            <BsMic />
-                        </Button>
-                    )}
-                </div>
-
-                {showEmojiPicker && (
-                    <div className="emoji-picker-container">
-                        <EmojiPicker onEmojiClick={handleEmojiClick} />
-                    </div>
-                )}
+                <Form.Control
+                    as="textarea"
+                    placeholder="Type a message..."
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    onKeyDown={onKeyDown}
+                    className="message-input"
+                />
+                <Button className="send-button" onClick={sendMessage}>
+                    <FaPaperPlane />
+                </Button>
             </div>
         </div>
     );

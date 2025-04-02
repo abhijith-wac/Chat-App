@@ -372,3 +372,28 @@
     max-width: 90%;
   }
 }
+
+.message-options {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s ease-in-out;
+}
+
+.action-btn .icon {
+  font-size: 14px;
+}
+
+.action-btn:hover {
+  transform: scale(1.05);
+}

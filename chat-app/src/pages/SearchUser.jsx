@@ -19,8 +19,8 @@ const SearchUser = ({ searchQuery, setSearchQuery }) => {
           type="text"
           placeholder="Search user..."
           value={searchQuery}
-          onChange={handleChange} // ✅ Prevents re-creating function on every render
-          autoFocus // ✅ Fixes focus issue
+          onChange={handleChange}
+          autoFocus
         />
       </InputGroup>
     </div>

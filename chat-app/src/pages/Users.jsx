@@ -1,18 +1,18 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useUsersWithUnseenMessages from "../hooks/useUsersWithUnseenMessages";
 import { useAtom } from "jotai";
 import { userAtom } from "../atoms/authAtom";
 import { ListGroup, Spinner, Image, Badge } from "react-bootstrap";
 import SearchUser from "./SearchUser";
 import "../styles/users.css";
+import useUsersWithUnseenMessages from "../hooks/useUsersWithUnseenMessages";
 
 const Users = () => {
   const navigate = useNavigate();
   const [loggedInUser] = useAtom(userAtom);
-  const [searchQuery, setSearchQuery] = useState(""); // State for search
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Fetch users along with their unseen messages
+  // Make sure we're passing the correct user ID
   const { users, isLoading, error } = useUsersWithUnseenMessages(loggedInUser?.uid);
 
   // Function to get initials from display name
@@ -41,7 +41,7 @@ const Users = () => {
 
   return (
     <div className="users-container">
-      {/* ✅ Search Component */}
+      {/* Search Component */}
       <SearchUser searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
       <ListGroup variant="flush">
@@ -65,7 +65,12 @@ const Users = () => {
               <p className="m-0">Tap to chat</p>
             </div>
 
-            {user.unseenMessages > 0 && <Badge pill bg="danger" className="ms-auto">{user.unseenMessages}</Badge>}
+            {/* Explicitly check if unseenMessages is defined and greater than 0 */}
+            {user.unseenMessages && user.unseenMessages > 0 && (
+              <Badge pill bg="danger" className="ms-auto">
+                {user.unseenMessages}
+              </Badge>
+            )}
           </ListGroup.Item>
         ))}
       </ListGroup>

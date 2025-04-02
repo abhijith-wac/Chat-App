@@ -14,9 +14,12 @@ const fetchMessages = async ([_, chatId, userId]) => {
 
   // Mark messages as "seen" if they are sent to the logged-in user
   const unseenMessages = messages.filter((msg) => msg.receiverId === userId && msg.status !== "seen");
-  for (const msg of unseenMessages) {
-    await updateDoc(doc(db, "chats", chatId, "messages", msg.id), { status: "seen" });
-  }
+
+  // Batch update to mark unseen messages as "seen" (reduces Firestore writes)
+  const updatePromises = unseenMessages.map((msg) =>
+    updateDoc(doc(db, "chats", chatId, "messages", msg.id), { status: "seen" })
+  );
+  await Promise.all(updatePromises);
 
   return messages;
 };
@@ -25,6 +28,16 @@ const fetchMessages = async ([_, chatId, userId]) => {
 export const deleteMessage = async (chatId, messageId) => {
   const messageRef = doc(db, "chats", chatId, "messages", messageId);
   await deleteDoc(messageRef);
+};
+
+// Edit a message
+export const editMessage = async (chatId, messageId, newContent) => {
+  const messageRef = doc(db, "chats", chatId, "messages", messageId);
+  await updateDoc(messageRef, {
+    content: newContent,
+    edited: true, // ✅ Mark as edited
+    editedAt: new Date().toISOString(), // ✅ Track edit time
+  });
 };
 
 const useMessages = (chatId, userId) => {
