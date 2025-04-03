@@ -12,7 +12,7 @@ const Users = () => {
   const [loggedInUser] = useAtom(userAtom);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { displayedUsers, loading, error, getInitials, getAvatarColor } = useFilteredUsers(loggedInUser, searchQuery);
+  const { displayedUsers, isLoading, error, getInitials, getAvatarColor } = useFilteredUsers(loggedInUser, searchQuery);
 
   if (error) return <p className="text-center p-3 text-warning">Error: {error.message}</p>;
 
@@ -20,11 +20,9 @@ const Users = () => {
     <div className="users-container">
       <SearchUser searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
-      {/* Show spinner if no cached users */}
-      {loading && displayedUsers.length === 0 && (
+      {isLoading && displayedUsers.length === 0 && (
         <div className="d-flex justify-content-center pt-4">
           <Spinner animation="border" variant="light" size="sm" />
-          <p className="ms-2 text-light">Loading users...</p>
         </div>
       )}
 

@@ -1,15 +1,12 @@
-import { collection, addDoc, serverTimestamp, doc, updateDoc } from "firebase/firestore";
-import { ref, get } from "firebase/database";
-import { db, rtdb } from "./config";
+import { collection, addDoc, serverTimestamp, doc, updateDoc, getDoc } from "firebase/firestore";
+import { db } from "./config";
 
-// ✅ Use Realtime Database to check if the recipient is online (instant update)
 const isRecipientOnline = async (receiverId) => {
-  const statusRef = ref(rtdb, `/status/${receiverId}`);
-  const snapshot = await get(statusRef);
-  return snapshot.exists() && snapshot.val().online;
+  const userRef = doc(db, "users", receiverId);
+  const userSnap = await getDoc(userRef);
+  return userSnap.exists() && userSnap.data().isOnline;
 };
 
-// ✅ Send message and check recipient's online status in real time
 export const sendMessage = async (chatId, senderId, receiverId, text) => {
   const messagesRef = collection(db, "chats", chatId, "messages");
 
@@ -18,10 +15,9 @@ export const sendMessage = async (chatId, senderId, receiverId, text) => {
     receiverId,
     text,
     timestamp: serverTimestamp(),
-    status: "sent", // Default status
+    status: "sent",
   };
 
-  // Check if recipient is online (uses RTDB for instant update)
   if (await isRecipientOnline(receiverId)) {
     messageData.status = "delivered";
   }
@@ -29,7 +25,6 @@ export const sendMessage = async (chatId, senderId, receiverId, text) => {
   await addDoc(messagesRef, messageData);
 };
 
-// ✅ Mark message as "seen"
 export const markMessageAsSeen = async (chatId, messageId) => {
   const messageRef = doc(db, "chats", chatId, "messages", messageId);
   await updateDoc(messageRef, { status: "seen" });

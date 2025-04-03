@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { Form, Button } from "react-bootstrap";
 import { useAtom } from "jotai";
@@ -14,12 +14,11 @@ import "../styles/chat.css";
 
 const Chat = () => {
   const { userId } = useParams();
-  const navigate = useNavigate();
   const [loggedInUser] = useAtom(userAtom);
   const chatId = [loggedInUser?.uid, userId].sort().join("_");
 
-  const messages = useMessages(chatId, loggedInUser?.uid); // Real-time messages
-  const userDetails = useUserDetails(userId); // Get user info
+  const { data: messages, mutate } = useMessages(chatId, loggedInUser?.uid);
+  const { data: userDetails } = useUserDetails(userId);
 
   const {
     text,
@@ -42,17 +41,15 @@ const Chat = () => {
     formatLastSeen,
   } = useChatFunctions(chatId, loggedInUser, userId, messages);
 
-  // Mark messages as seen when component mounts or messages update
   useEffect(() => {
-    if (chatId && loggedInUser?.uid && messages.length) {
-      markMessagesAsSeen(chatId, loggedInUser.uid).catch((error) =>
-        console.error("Error marking messages as seen:", error)
-      );
+    if (chatId && loggedInUser?.uid && messages) {
+      markMessagesAsSeen(chatId, loggedInUser.uid)
+        .then(() => mutate())
+        .catch((error) => console.error("Error marking messages as seen:", error));
     }
-  }, [chatId, loggedInUser?.uid, messages]);
+  }, [chatId, loggedInUser?.uid, messages, mutate]);
 
-  // Group messages by date
-  const groupedMessages = messages.reduce((groups, msg) => {
+  const groupedMessages = messages?.reduce((groups, msg) => {
     const date = msg.timestamp
       ? format(new Date(msg.timestamp.seconds * 1000), "MMMM d, yyyy")
       : "Today";
@@ -65,10 +62,9 @@ const Chat = () => {
 
   return (
     <div className="chat-app-container">
-      {/* Chat Header */}
       <div className="chat-header">
         <div className="chat-header-left">
-          <Button className="back-button" variant="link" onClick={() => navigate(-1)}>
+          <Button className="back-button" variant="link">
             <FaArrowLeft />
           </Button>
           <div className="avatar-container">
@@ -92,77 +88,70 @@ const Chat = () => {
         </div>
       </div>
 
-      {/* Messages */}
       <div className="messages-container">
-        {Object.entries(groupedMessages).map(([date, dateMessages]) => (
-          <div key={date} className="message-date-group">
-            <div className="date-divider">
-              <span>{date}</span>
-            </div>
-            {dateMessages.map((msg, index) => {
-              const isSender = msg.senderId === loggedInUser?.uid;
-              const isFirstUnseen =
-                msg.receiverId === loggedInUser?.uid &&
-                msg.status === "delivered" &&
-                (index === 0 || dateMessages[index - 1].status === "seen");
-
-              return (
-                <div
-                  key={msg.id}
-                  className={`message-wrapper ${isSender ? "sender" : "receiver"}`}
-                  ref={isFirstUnseen ? firstUnseenMessageRef : null}
-                >
+        {groupedMessages &&
+          Object.entries(groupedMessages).map(([date, dateMessages]) => (
+            <div key={date} className="message-date-group">
+              <div className="date-divider">
+                <span>{date}</span>
+              </div>
+              {dateMessages.map((msg, index) => {
+                const isSender = msg.senderId === loggedInUser?.uid;
+                const isFirstUnseen =
+                  msg.receiverId === loggedInUser?.uid &&
+                  msg.status === "delivered" &&
+                  (index === 0 || dateMessages[index - 1].status === "seen");
+                return (
                   <div
-                    className={`message-bubble ${isSender ? "sender-bubble" : "receiver-bubble"}`}
-                    onClick={() => toggleMessageOptions(msg.id)}
-                    onDoubleClick={() => startEditing(msg)}
+                    key={msg.id}
+                    className={`message-wrapper ${isSender ? "sender" : "receiver"}`}
+                    ref={isFirstUnseen ? firstUnseenMessageRef : null}
                   >
-                    {editingMessageId === msg.id ? (
-                      <>
-                        <Form.Control
-                          as="textarea"
-                          value={editText}
-                          onChange={(e) => setEditText(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") saveEditedMessage(msg);
-                            if (e.key === "Escape") cancelEditing();
-                          }}
-                          className="edit-message-input"
-                        />
-                        <Button variant="secondary" size="sm" onClick={cancelEditing}>
-                          Cancel
+                    <div
+                      className={`message-bubble ${isSender ? "sender-bubble" : "receiver-bubble"}`}
+                      onClick={() => toggleMessageOptions(msg.id)}
+                      onDoubleClick={() => startEditing(msg)}
+                    >
+                      {editingMessageId === msg.id ? (
+                        <>
+                          <Form.Control
+                            as="textarea"
+                            value={editText}
+                            onChange={(e) => setEditText(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") saveEditedMessage(msg);
+                              if (e.key === "Escape") cancelEditing();
+                            }}
+                            className="edit-message-input"
+                          />
+                          <Button variant="secondary" size="sm" onClick={cancelEditing}>
+                            Cancel
+                          </Button>
+                        </>
+                      ) : (
+                        <p className="message-text">
+                          {msg.text} {msg.edited && <small>(edited)</small>}
+                        </p>
+                      )}
+                    </div>
+                    {isSender && showOptions === msg.id && (
+                      <div className="message-options">
+                        <Button variant="outline-primary" size="xs" onClick={() => startEditing(msg)}>
+                          <FaEdit /> Edit
                         </Button>
-                      </>
-                    ) : (
-                      <p className="message-text">
-                        {msg.text} {msg.edited && <small>(edited)</small>}
-                        <span className="message-time">
-                          {msg.timestamp
-                            ? format(new Date(msg.timestamp.seconds * 1000), "h:mm a")
-                            : ""}
-                        </span>
-                      </p>
+                        <Button variant="outline-danger" size="xs" onClick={() => deleteMessage(chatId, msg.id)}>
+                          <FaTrash /> Delete
+                        </Button>
+                      </div>
                     )}
                   </div>
-                  {isSender && showOptions === msg.id && (
-                    <div className="message-options">
-                      <Button variant="outline-primary" size="xs" onClick={() => startEditing(msg)}>
-                        <FaEdit /> Edit
-                      </Button>
-                      <Button variant="outline-danger" size="xs" onClick={() => deleteMessage(chatId, msg.id)}>
-                        <FaTrash /> Delete
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ))}
+                );
+              })}
+            </div>
+          ))}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Chat Input */}
       <div className="chat-input-area">
         <div className="input-actions">
           <Button

@@ -3,18 +3,13 @@ import useUsersWithUnseenMessages from "./useUsersWithUnseenMessages";
 
 const useFilteredUsers = (loggedInUser, searchQuery) => {
   const previousUsersRef = useRef([]);
-  const { users = [], loading, error } = useUsersWithUnseenMessages(loggedInUser?.uid, searchQuery); 
+  const { users, isLoading, error } = useUsersWithUnseenMessages(loggedInUser?.uid, searchQuery);
 
-  let displayedUsers = loading ? previousUsersRef.current : users;
-
-  // Ensure `users` is an array before filtering
-  if (!Array.isArray(displayedUsers)) {
-    displayedUsers = [];
-  }
+  let displayedUsers = isLoading ? previousUsersRef.current : users;
 
   displayedUsers = displayedUsers.filter(user => user.uid !== loggedInUser?.uid);
 
-  if (!loading && users.length > 0) {
+  if (!isLoading && users.length > 0) {
     previousUsersRef.current = users;
   }
 
@@ -29,7 +24,7 @@ const useFilteredUsers = (loggedInUser, searchQuery) => {
     return colors[Math.abs(hash) % colors.length];
   };
 
-  return { displayedUsers, loading, error, getInitials, getAvatarColor };
+  return { displayedUsers, isLoading, error, getInitials, getAvatarColor };
 };
 
 export default useFilteredUsers;

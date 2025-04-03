@@ -5,7 +5,6 @@ import {
   signInWithEmailAndPassword,
   updateProfile,
   signOut,
-  onAuthStateChanged
 } from "firebase/auth";
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../services/config";
@@ -13,15 +12,6 @@ import { setUserPresence } from "../utils/presence";
 
 const useAuth = () => {
   const setUser = useSetAtom(userAtom);
-
-  // Handle Firebase Auth state change (fixes online/offline status)
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      setUserPresence(user.uid, true); // Mark user as online
-    } else {
-      setUser(null);
-    }
-  });
 
   // Signup function
   const signup = async (email, password, displayName) => {
@@ -61,13 +51,17 @@ const useAuth = () => {
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
 
-      let userData = userSnap.exists() ? userSnap.data() : { uid: user.uid, email: user.email };
-
-      // Mark user as online
-      setUserPresence(user.uid, true);
+      let userData;
+      if (userSnap.exists()) {
+        userData = userSnap.data();
+      } else {
+        userData = { uid: user.uid, email: user.email };
+      }
 
       setUser(userData);
       localStorage.setItem("user", JSON.stringify(userData));
+
+      setUserPresence(user.uid, true);
 
       return { success: true };
     } catch (error) {
@@ -82,9 +76,9 @@ const useAuth = () => {
       if (user) {
         console.log("User is logging out:", user.uid);
 
-        // Mark user as offline
         await setUserPresence(user.uid, false);
-        await updateDoc(doc(db, "users", user.uid), {
+        const userRef = doc(db, "users", user.uid);
+        await updateDoc(userRef, {
           online: false,
           lastSeen: serverTimestamp(),
         });

@@ -176,13 +176,6 @@
   z-index: -1;
 }
 
-.message-time {
-  font-size: 10px; /* Tiny size */
-  color: gray;
-  margin-left: 6px;
-  vertical-align: bottom;
-}
-
 .receiver .message-bubble:before {
   content: '';
   position: absolute;
