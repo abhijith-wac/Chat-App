@@ -3,9 +3,14 @@ import useUsersWithUnseenMessages from "./useUsersWithUnseenMessages";
 
 const useFilteredUsers = (loggedInUser, searchQuery) => {
   const previousUsersRef = useRef([]);
-  const { users, loading, error } = useUsersWithUnseenMessages(loggedInUser?.uid, searchQuery);
+  const { users = [], loading, error } = useUsersWithUnseenMessages(loggedInUser?.uid, searchQuery); 
 
   let displayedUsers = loading ? previousUsersRef.current : users;
+
+  // Ensure `users` is an array before filtering
+  if (!Array.isArray(displayedUsers)) {
+    displayedUsers = [];
+  }
 
   displayedUsers = displayedUsers.filter(user => user.uid !== loggedInUser?.uid);
 
