@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { Form, Button } from "react-bootstrap";
@@ -18,6 +18,8 @@ import useUserDetails from "../hooks/useUserDetails";
 import { FaPaperPlane, FaArrowLeft, FaEdit, FaTrash, FaRegSmile } from "react-icons/fa";
 import { BsImageFill, BsMic } from "react-icons/bs";
 import EmojiPicker from "emoji-picker-react";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../services/config";
 import "../styles/chat.css";
 
 const Chat = () => {
@@ -31,9 +33,9 @@ const Chat = () => {
   const [editingMessageId, setEditingMessageId] = useAtom(editingMessageAtom);
   const [editText, setEditText] = useAtom(editTextAtom);
   const [userDetails] = useAtom(userDetailsAtom);
+  const [isTyping, setIsTyping] = useState(false); // Local state for typing indicator
 
   useUserDetails(userId);
-
   const chatId = [loggedInUser?.uid, userId].sort().join("_");
 
   const {
@@ -49,11 +51,28 @@ const Chat = () => {
     markMessagesAsSeen
   } = useChatFunctions(chatId, loggedInUser, userId);
 
+  // Listen for typing status from other user
+  useEffect(() => {
+    if (!chatId || !loggedInUser) return;
+
+    const chatRef = doc(db, "chats", chatId);
+    const unsubscribe = onSnapshot(chatRef, (doc) => {
+      const data = doc.data();
+      if (data?.typing) {
+        // Check if the other user (not the logged-in user) is typing
+        setIsTyping(!!data.typing[userId] && userId !== loggedInUser.uid);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [chatId, loggedInUser, userId]);
+
+  // Mark messages as seen
   useEffect(() => {
     if (loggedInUser && messages.length > 0) {
       markMessagesAsSeen();
     }
-  }, [loggedInUser, messages]);
+  }, [loggedInUser, messages, markMessagesAsSeen]);
 
   const groupedMessages = messages.reduce((groups, msg) => {
     const date = msg.timestamp
@@ -82,11 +101,13 @@ const Chat = () => {
           <div className="user-info">
             <h5>{userDetails?.displayName || "User"}</h5>
             <span className="user-status">
-              {userDetails?.online
-                ? "Active now"
-                : userDetails?.lastSeen
-                  ? formatLastSeen(userDetails.lastSeen)
-                  : "Offline"}
+              {isTyping 
+                ? "Typing..." 
+                : userDetails?.online
+                  ? "Active now"
+                  : userDetails?.lastSeen
+                    ? formatLastSeen(userDetails.lastSeen)
+                    : "Offline"}
             </span>
           </div>
         </div>
@@ -176,14 +197,12 @@ const Chat = () => {
                               <FaEdit /> Edit
                             </Button>
                           )}
-
-                          <Button variant="outline-danger" size="sm" onClick={() => deleteMessage(chatId, msg.id, loggedInUser)}>
+                          <Button variant="outline-danger" size="sm" onClick={() => deleteMessage(msg.id)}>
                             <FaTrash /> Delete
                           </Button>
                         </div>
                       )}
                   </div>
-
                 </React.Fragment>
               );
             })}

@@ -22,7 +22,6 @@
 /* Main Content */
 .main-content {
     flex: 1;
-    padding: clamp(1rem, 2vw, 2rem);
     background: #ffffff;
     box-shadow: inset 2px 0 10px rgba(0, 0, 0, 0.05);
     display: flex;

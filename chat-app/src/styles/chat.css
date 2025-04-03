@@ -8,7 +8,7 @@
 .chat-app-container {
   display: flex;
   flex-direction: column;
-  height: 96vh;
+  height: 100vh;
   background-color: #f0f4f8;
   font-family: 'Inter', sans-serif;
 }

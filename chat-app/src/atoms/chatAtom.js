@@ -12,6 +12,10 @@ export const optionsAtom = atom(null);
 export const editingMessageAtom = atom(null);
 export const editTextAtom = atom("");
 export const selectedMessageAtom = atom(null);
+export const typingStatusAtom = atom({});
+export const typingAtom = atom(false); // Default to false
+
+
 
 
 
