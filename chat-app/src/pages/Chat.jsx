@@ -19,7 +19,7 @@ const Chat = () => {
   const chatId = [loggedInUser?.uid, userId].sort().join("_");
 
   const messages = useMessages(chatId, loggedInUser?.uid); // Real-time messages
-  const userDetails = useUserDetails(userId); // Get user info
+  const { userDetails } = useUserDetails(userId); // Get user info
 
   const {
     text,
@@ -42,7 +42,6 @@ const Chat = () => {
     formatLastSeen,
   } = useChatFunctions(chatId, loggedInUser, userId, messages);
 
-  // Mark messages as seen when component mounts or messages update
   useEffect(() => {
     if (chatId && loggedInUser?.uid && messages.length) {
       markMessagesAsSeen(chatId, loggedInUser.uid).catch((error) =>
@@ -51,7 +50,6 @@ const Chat = () => {
     }
   }, [chatId, loggedInUser?.uid, messages]);
 
-  // Group messages by date
   const groupedMessages = messages.reduce((groups, msg) => {
     const date = msg.timestamp
       ? format(new Date(msg.timestamp.seconds * 1000), "MMMM d, yyyy")
@@ -73,7 +71,7 @@ const Chat = () => {
           </Button>
           <div className="avatar-container">
             <img
-              src={`https://ui-avatars.com/api/?name=${userDetails?.displayName || "User"}&background=random`}
+              src={`https://ui-avatars.com/api/?name=${userDetails?.displayName || "Unknown"}&background=random`}
               alt="User Avatar"
               className="user-avatar"
             />
