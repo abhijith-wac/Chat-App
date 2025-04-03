@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { format, isToday, isYesterday, differenceInDays } from "date-fns";
 import { sendMessage } from "../services/sendMessage";
 import { deleteMessage, editMessage } from "../hooks/useMessages";
 
@@ -17,7 +18,6 @@ const useChatFunctions = (chatId, loggedInUser, userId, messages) => {
       await sendMessage(chatId, loggedInUser?.uid, userId, text);
       setText("");
       setShowEmojiPicker(false);
-      // Scroll to bottom after sending
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   };
@@ -30,7 +30,6 @@ const useChatFunctions = (chatId, loggedInUser, userId, messages) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (editingMessageId) {
-        // Handle saving edited message
       } else {
         handleSendMessage();
       }
@@ -63,7 +62,22 @@ const useChatFunctions = (chatId, loggedInUser, userId, messages) => {
     setText((prevText) => prevText + emojiObject.emoji);
   };
 
-  // Scroll to first unseen message when messages load
+  const formatLastSeen = (lastSeenDate) => {
+    if (!lastSeenDate) return "Offline";
+    
+    const date = lastSeenDate.toDate ? lastSeenDate.toDate() : new Date(lastSeenDate);
+    
+    if (isToday(date)) {
+      return `Today at ${format(date, "h:mm a")}`;
+    } else if (isYesterday(date)) {
+      return `Yesterday at ${format(date, "h:mm a")}`;
+    } else if (differenceInDays(new Date(), date) < 7) {
+      return `${format(date, "EEEE")} at ${format(date, "h:mm a")}`;
+    } else {
+      return `${format(date, "MMM d, yyyy")} at ${format(date, "h:mm a")}`;
+    }
+  };
+
   useEffect(() => {
     if (messages && messages.length > 0) {
       const firstUnseenIndex = messages.findIndex(
@@ -72,7 +86,6 @@ const useChatFunctions = (chatId, loggedInUser, userId, messages) => {
       if (firstUnseenIndex !== -1 && firstUnseenMessageRef.current) {
         firstUnseenMessageRef.current.scrollIntoView({ behavior: "smooth" });
       } else {
-        // If no unseen messages, scroll to bottom
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }
     }
@@ -89,7 +102,7 @@ const useChatFunctions = (chatId, loggedInUser, userId, messages) => {
     editText,
     setEditText,
     messagesEndRef,
-    firstUnseenMessageRef, // Expose this ref
+    firstUnseenMessageRef,
     handleSendMessage,
     handleEmojiClick,
     handleKeyDown,
@@ -98,6 +111,7 @@ const useChatFunctions = (chatId, loggedInUser, userId, messages) => {
     cancelEditing,
     saveEditedMessage,
     addEmoji,
+    formatLastSeen, 
   };
 };
 

@@ -38,6 +38,7 @@ const Chat = () => {
     startEditing,
     cancelEditing,
     saveEditedMessage,
+    formatLastSeen,
   } = useChatFunctions(chatId, loggedInUser, userId, messages);
 
   useEffect(() => {
@@ -80,7 +81,7 @@ const Chat = () => {
               {userDetails?.online
                 ? "Active now"
                 : userDetails?.lastSeen
-                ? `Last seen ${format(userDetails?.lastSeen?.toDate?.() || new Date(), "h:mm a")}`
+                ? formatLastSeen(userDetails.lastSeen)
                 : "Offline"}
             </span>
           </div>
@@ -112,13 +113,21 @@ const Chat = () => {
                       onDoubleClick={() => startEditing(msg)}
                     >
                       {editingMessageId === msg.id ? (
-                        <Form.Control
-                          as="textarea"
-                          value={editText}
-                          onChange={(e) => setEditText(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && saveEditedMessage(msg)}
-                          className="edit-message-input"
-                        />
+                        <>
+                          <Form.Control
+                            as="textarea"
+                            value={editText}
+                            onChange={(e) => setEditText(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") saveEditedMessage(msg);
+                              if (e.key === "Escape") cancelEditing();
+                            }}
+                            className="edit-message-input"
+                          />
+                          <Button variant="secondary" size="sm" onClick={cancelEditing}>
+                            Cancel
+                          </Button>
+                        </>
                       ) : (
                         <p className="message-text">
                           {msg.text} {msg.edited && <small>(edited)</small>}

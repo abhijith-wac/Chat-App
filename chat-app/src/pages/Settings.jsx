@@ -22,7 +22,6 @@ const Settings = () => {
 
   return (
     <div className="settings-container">
-      {/* Drop-up Menu */}
       {showMenu && (
         <ListGroup className="settings-menu position-absolute w-90 mb-2" style={{ bottom: "60px", left: "15px", right: "15px" }}>
           <ListGroup.Item action className="d-flex align-items-center">
@@ -36,7 +35,6 @@ const Settings = () => {
         </ListGroup>
       )}
 
-      {/* Settings Button (Always at Bottom) */}
       <Button
         variant="light"
         className="settings-button w-100 d-flex align-items-center justify-content-between"

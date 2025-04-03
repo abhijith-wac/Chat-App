@@ -35,7 +35,7 @@ export const deleteMessage = async (chatId, messageId) => {
 export const editMessage = async (chatId, messageId, newContent) => {
   const messageRef = doc(db, "chats", chatId, "messages", messageId);
   await updateDoc(messageRef, {
-    text: newContent, // Use 'text' to match other components
+    text: newContent, 
     edited: true,
     editedAt: new Date().toISOString(),
   });

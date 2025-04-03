@@ -3,7 +3,6 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
 
-// Firebase configuration using environment variables
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -14,10 +13,8 @@ const firebaseConfig = {
   databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL, 
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Export Firebase services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const rtdb = getDatabase(app); 
