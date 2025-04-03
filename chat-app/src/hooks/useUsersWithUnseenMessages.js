@@ -2,12 +2,13 @@ import useSWR from "swr";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "../services/config";
 
-const fetchUsersWithUnseenMessages = (userId, searchQuery = "") => {
-  return new Promise((resolve, reject) => {
-    if (!userId) return resolve([]);
+const fetchUsersWithUnseenMessages = async (userId, searchQuery = "") => {
+  if (!userId) return [];
 
+  return new Promise((resolve, reject) => {
     const usersRef = collection(db, "users");
-    const usersUnsub = onSnapshot(usersRef, (usersSnapshot) => {
+
+     const usersUnsub = onSnapshot(usersRef, async (usersSnapshot) => {
       let users = usersSnapshot.docs.map((doc) => ({
         uid: doc.id,
         ...doc.data()
@@ -15,21 +16,21 @@ const fetchUsersWithUnseenMessages = (userId, searchQuery = "") => {
 
       if (searchQuery) {
         users = users.filter((user) =>
-          (user.displayName?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-          (user.email?.toLowerCase() || "").includes(searchQuery.toLowerCase())
+          user.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          user.email?.toLowerCase().includes(searchQuery.toLowerCase())
         );
       }
 
-      const chatsQuery = query(
+       const chatsQuery = query(
         collection(db, "chats"),
         where("participants", "array-contains", userId)
       );
 
-      const chatsUnsub = onSnapshot(chatsQuery, (chatsSnapshot) => {
+      const chatsUnsub = onSnapshot(chatsQuery, async (chatsSnapshot) => {
         const unseenMessagesCount = {};
 
-        const chatPromises = chatsSnapshot.docs.map((chatDoc) => {
-          return new Promise((chatResolve) => {
+        const chatPromises = chatsSnapshot.docs.map((chatDoc) =>
+          new Promise((resolve) => {
             const messagesQuery = query(
               collection(db, `chats/${chatDoc.id}/messages`),
               where("receiverId", "==", userId),
@@ -41,34 +42,36 @@ const fetchUsersWithUnseenMessages = (userId, searchQuery = "") => {
                 const { senderId } = doc.data();
                 unseenMessagesCount[senderId] = (unseenMessagesCount[senderId] || 0) + 1;
               });
-              chatResolve();
+              resolve();
             }, (error) => {
               console.error("Message query error:", error);
-              chatResolve();
+              resolve();  
             });
-          });
-        });
 
-        Promise.all(chatPromises)
-          .then(() => {
-            const updatedUsers = users.map((user) => ({
-              ...user,
-              unseenMessages: unseenMessagesCount[user.uid] || 0,
-            }));
-            resolve(updatedUsers);
+            return () => messagesUnsub();
           })
-          .catch((error) => {
-            console.error("Promise.all error:", error);
-            reject(error);
-          });
+        );
+
+        await Promise.all(chatPromises);
+
+        const updatedUsers = users.map((user) => ({
+          ...user,
+          unseenMessages: unseenMessagesCount[user.uid] || 0,
+        }));
+
+        resolve(updatedUsers);
       }, (error) => {
         console.error("Chats query error:", error);
         reject(error);
       });
+
+       return () => chatsUnsub();
     }, (error) => {
       console.error("Users query error:", error);
       reject(error);
     });
+
+     return () => usersUnsub();
   });
 };
 

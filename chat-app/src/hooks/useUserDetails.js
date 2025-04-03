@@ -1,14 +1,17 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useAtom } from "jotai";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../services/config";
+import { userDetailsAtom, userLoadingAtom } from "../atoms/chatAtom";
 
 const useUserDetails = (userId) => {
-  const [userDetails, setUserDetails] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [, setUserDetails] = useAtom(userDetailsAtom);
+  const [, setLoading] = useAtom(userLoadingAtom);
 
   useEffect(() => {
     if (!userId) return;
 
+    setLoading(true);
     const docRef = doc(db, "users", userId);
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
@@ -20,9 +23,9 @@ const useUserDetails = (userId) => {
     });
 
     return () => unsubscribe();
-  }, [userId]);
+  }, [userId, setUserDetails, setLoading]);
 
-  return { userDetails, loading };
+  return null;
 };
 
 export default useUserDetails;

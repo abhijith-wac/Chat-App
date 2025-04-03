@@ -19,7 +19,7 @@ const useMessages = (chatId, userId) => {
       setMessages(newMessages);
     });
 
-    return () => unsubscribe(); // Cleanup listener on unmount
+    return () => unsubscribe(); 
   }, [chatId]);
 
   return messages;

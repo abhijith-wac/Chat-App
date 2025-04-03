@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { userAtom } from "../atoms/authAtom";
+import { searchQueryAtom } from "../atoms/chatAtom";
 import { ListGroup, Spinner, Image, Badge } from "react-bootstrap";
 import SearchUser from "./SearchUser";
 import useFilteredUsers from "../hooks/useFilteredUsers";
@@ -10,7 +11,7 @@ import "../styles/users.css";
 const Users = () => {
   const navigate = useNavigate();
   const [loggedInUser] = useAtom(userAtom);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useAtom(searchQueryAtom);
 
   const { displayedUsers, isLoading, error, getInitials, getAvatarColor } = useFilteredUsers(loggedInUser, searchQuery);
 

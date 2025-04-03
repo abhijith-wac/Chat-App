@@ -1,4 +1,12 @@
-import { collection, addDoc, serverTimestamp, doc, updateDoc, getDoc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  doc,
+  updateDoc,
+  getDoc,
+  setDoc,
+} from "firebase/firestore";
 import { db } from "./config";
 
 const isRecipientOnline = async (receiverId) => {
@@ -8,24 +16,37 @@ const isRecipientOnline = async (receiverId) => {
 };
 
 export const sendMessage = async (chatId, senderId, receiverId, text) => {
-  const messagesRef = collection(db, "chats", chatId, "messages");
+  if (!text.trim()) return;
 
-  const messageData = {
-    senderId,
-    receiverId,
-    text,
-    timestamp: serverTimestamp(),
-    status: "sent",
-  };
+  try {
+    const chatRef = doc(db, "chats", chatId);
+    const chatSnap = await getDoc(chatRef);
 
-  if (await isRecipientOnline(receiverId)) {
-    messageData.status = "delivered";
+     if (!chatSnap.exists()) {
+      await setDoc(chatRef, { createdAt: serverTimestamp() }, { merge: true });
+    }
+
+     const messagesRef = collection(db, "chats", chatId, "messages");
+
+    const messageData = {
+      senderId,
+      receiverId,
+      text,
+      timestamp: serverTimestamp(),
+      status: (await isRecipientOnline(receiverId)) ? "delivered" : "sent",
+    };
+
+    await addDoc(messagesRef, messageData);
+  } catch (error) {
+    console.error("Error sending message:", error);
   }
-
-  await addDoc(messagesRef, messageData);
 };
 
 export const markMessageAsSeen = async (chatId, messageId) => {
-  const messageRef = doc(db, "chats", chatId, "messages", messageId);
-  await updateDoc(messageRef, { status: "seen" });
+  try {
+    const messageRef = doc(db, "chats", chatId, "messages", messageId);
+    await updateDoc(messageRef, { status: "seen" });
+  } catch (error) {
+    console.error("Error marking message as seen:", error);
+  }
 };

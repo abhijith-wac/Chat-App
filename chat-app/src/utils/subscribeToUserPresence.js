@@ -8,8 +8,7 @@ export const subscribeToUserPresence = (userId, callback) => {
   const userStatusRef = ref(rtdb, `/status/${userId}`);
   const userDocRef = doc(db, "users", userId);
 
-  // Listen for real-time updates from RTDB
-  const unsubscribeRTDB = onValue(userStatusRef, (snapshot) => {
+   const unsubscribeRTDB = onValue(userStatusRef, (snapshot) => {
     if (snapshot.exists()) {
       callback(snapshot.val().online);
     } else {
@@ -17,8 +16,7 @@ export const subscribeToUserPresence = (userId, callback) => {
     }
   });
 
-  // Fallback: Listen to Firestore in case RTDB doesn't update
-  const unsubscribeFirestore = onSnapshot(userDocRef, (docSnap) => {
+   const unsubscribeFirestore = onSnapshot(userDocRef, (docSnap) => {
     if (docSnap.exists()) {
       callback(docSnap.data().online);
     }

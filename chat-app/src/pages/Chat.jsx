@@ -4,67 +4,69 @@ import { format } from "date-fns";
 import { Form, Button } from "react-bootstrap";
 import { useAtom } from "jotai";
 import { userAtom } from "../atoms/authAtom";
-import useMessages, { deleteMessage, markMessagesAsSeen } from "../hooks/useMessages";
+import {
+  messagesAtom,
+  textAtom,
+  emojiPickerAtom,
+  selectedMessageAtom,
+  editingMessageAtom,
+  editTextAtom,
+  userDetailsAtom,
+} from "../atoms/chatAtom";
+import useChatFunctions from "../hooks/useChatFunctions";
 import useUserDetails from "../hooks/useUserDetails";
-import { FaPaperPlane, FaArrowLeft, FaTrash, FaEdit, FaRegSmile } from "react-icons/fa";
+import { FaPaperPlane, FaArrowLeft, FaEdit, FaTrash, FaRegSmile } from "react-icons/fa";
 import { BsImageFill, BsMic } from "react-icons/bs";
 import EmojiPicker from "emoji-picker-react";
-import useChatFunctions from "../hooks/useChatFunctions";
 import "../styles/chat.css";
 
 const Chat = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
   const [loggedInUser] = useAtom(userAtom);
+  const [messages] = useAtom(messagesAtom);
+  const [text, setText] = useAtom(textAtom);
+  const [showEmojiPicker, setShowEmojiPicker] = useAtom(emojiPickerAtom);
+  const [selectedMessage, setSelectedMessage] = useAtom(selectedMessageAtom);
+  const [editingMessageId, setEditingMessageId] = useAtom(editingMessageAtom);
+  const [editText, setEditText] = useAtom(editTextAtom);
+  const [userDetails] = useAtom(userDetailsAtom);
+
+  useUserDetails(userId);
+
   const chatId = [loggedInUser?.uid, userId].sort().join("_");
 
-  const messages = useMessages(chatId, loggedInUser?.uid); // Real-time messages
-  const { userDetails } = useUserDetails(userId); // Get user info
-
   const {
-    text,
-    setText,
-    showEmojiPicker,
-    setShowEmojiPicker,
-    showOptions,
-    editingMessageId,
-    editText,
-    setEditText,
     messagesEndRef,
     firstUnseenMessageRef,
     handleSendMessage,
-    handleEmojiClick,
     handleKeyDown,
-    toggleMessageOptions,
     startEditing,
     cancelEditing,
     saveEditedMessage,
+    deleteMessage,
     formatLastSeen,
-  } = useChatFunctions(chatId, loggedInUser, userId, messages);
+    markMessagesAsSeen
+  } = useChatFunctions(chatId, loggedInUser, userId);
 
-  useEffect(() => {
-    if (chatId && loggedInUser?.uid && messages.length) {
-      markMessagesAsSeen(chatId, loggedInUser.uid).catch((error) =>
-        console.error("Error marking messages as seen:", error)
-      );
+   useEffect(() => {
+    if (loggedInUser && messages.length > 0) {
+      markMessagesAsSeen();
     }
-  }, [chatId, loggedInUser?.uid, messages]);
+  }, [loggedInUser, messages]);
 
   const groupedMessages = messages.reduce((groups, msg) => {
     const date = msg.timestamp
       ? format(new Date(msg.timestamp.seconds * 1000), "MMMM d, yyyy")
       : "Today";
-    if (!groups[date]) {
-      groups[date] = [];
-    }
+    if (!groups[date]) groups[date] = [];
     groups[date].push(msg);
     return groups;
   }, {});
 
   return (
     <div className="chat-app-container">
-      {/* Chat Header */}
-      <div className="chat-header">
+       <div className="chat-header">
         <div className="chat-header-left">
           <Button className="back-button" variant="link" onClick={() => navigate(-1)}>
             <FaArrowLeft />
@@ -83,76 +85,101 @@ const Chat = () => {
               {userDetails?.online
                 ? "Active now"
                 : userDetails?.lastSeen
-                ? formatLastSeen(userDetails.lastSeen)
-                : "Offline"}
+                  ? formatLastSeen(userDetails.lastSeen)
+                  : "Offline"}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="messages-container">
+       <div className="messages-container" onClick={() => setSelectedMessage(null)}>
         {Object.entries(groupedMessages).map(([date, dateMessages]) => (
           <div key={date} className="message-date-group">
             <div className="date-divider">
               <span>{date}</span>
             </div>
+            
             {dateMessages.map((msg, index) => {
               const isSender = msg.senderId === loggedInUser?.uid;
               const isFirstUnseen =
                 msg.receiverId === loggedInUser?.uid &&
                 msg.status === "delivered" &&
                 (index === 0 || dateMessages[index - 1].status === "seen");
-
+              
               return (
-                <div
-                  key={msg.id}
-                  className={`message-wrapper ${isSender ? "sender" : "receiver"}`}
-                  ref={isFirstUnseen ? firstUnseenMessageRef : null}
-                >
-                  <div
-                    className={`message-bubble ${isSender ? "sender-bubble" : "receiver-bubble"}`}
-                    onClick={() => toggleMessageOptions(msg.id)}
-                    onDoubleClick={() => startEditing(msg)}
-                  >
-                    {editingMessageId === msg.id ? (
-                      <>
-                        <Form.Control
-                          as="textarea"
-                          value={editText}
-                          onChange={(e) => setEditText(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") saveEditedMessage(msg);
-                            if (e.key === "Escape") cancelEditing();
-                          }}
-                          className="edit-message-input"
-                        />
-                        <Button variant="secondary" size="sm" onClick={cancelEditing}>
-                          Cancel
-                        </Button>
-                      </>
-                    ) : (
-                      <p className="message-text">
-                        {msg.text} {msg.edited && <small>(edited)</small>}
-                        <span className="message-time">
-                          {msg.timestamp
-                            ? format(new Date(msg.timestamp.seconds * 1000), "h:mm a")
-                            : ""}
-                        </span>
-                      </p>
-                    )}
-                  </div>
-                  {isSender && showOptions === msg.id && (
-                    <div className="message-options">
-                      <Button variant="outline-primary" size="xs" onClick={() => startEditing(msg)}>
-                        <FaEdit /> Edit
-                      </Button>
-                      <Button variant="outline-danger" size="xs" onClick={() => deleteMessage(chatId, msg.id)}>
-                        <FaTrash /> Delete
-                      </Button>
+                <React.Fragment key={msg.id}>
+                   {isFirstUnseen && index > 0 && (
+                    <div className="unread-divider">
+                      <span>Unread Messages</span>
                     </div>
                   )}
-                </div>
+                  
+                  <div
+                    className={`message-wrapper ${isSender ? "sender" : "receiver"}`}
+                    ref={isFirstUnseen ? firstUnseenMessageRef : null}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div
+                      className={`message-bubble ${isSender ? "sender-bubble" : "receiver-bubble"}`}
+                      onClick={() => setSelectedMessage((prev) => (prev === msg.id ? null : msg.id))}
+                    >
+                      {editingMessageId === msg.id ? (
+                        <>
+                          <Form.Control
+                            as="textarea"
+                            value={editText}
+                            onChange={(e) => setEditText(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") saveEditedMessage();
+                              if (e.key === "Escape") cancelEditing();
+                            }}
+                            className="edit-message-input"
+                            autoFocus
+                          />
+                          <div className="edit-actions">
+                            <Button variant="primary" size="sm" onClick={saveEditedMessage}>
+                              Save
+                            </Button>
+                            <Button variant="secondary" size="sm" onClick={cancelEditing}>
+                              Cancel
+                            </Button>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="message-content">
+                          <p className="message-text">
+                            {msg.text} {msg.edited && <small>(edited)</small>}
+                          </p>
+                          <div className="message-meta">
+                            <span className="message-time">
+                              {msg.timestamp
+                                ? format(new Date(msg.timestamp.seconds * 1000), "h:mm a")
+                                : ""}
+                            </span>
+                             {isSender && (
+                              <span className="message-status">
+                                {msg.status === "sent" && <span className="status-sent">✓</span>}
+                                {msg.status === "delivered" && <span className="status-delivered">✓✓</span>}
+                                {msg.status === "seen" && <span className="status-seen">✓✓</span>}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                     {isSender && selectedMessage === msg.id && (
+                      <div className="message-options">
+                        <Button variant="outline-primary" size="sm" onClick={() => startEditing(msg)}>
+                          <FaEdit /> Edit
+                        </Button>
+                        <Button variant="outline-danger" size="sm" onClick={() => deleteMessage(msg.id)}>
+                          <FaTrash /> Delete
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </React.Fragment>
               );
             })}
           </div>
@@ -160,8 +187,7 @@ const Chat = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Chat Input */}
-      <div className="chat-input-area">
+       <div className="chat-input-area">
         <div className="input-actions">
           <Button
             variant="link"
@@ -200,7 +226,7 @@ const Chat = () => {
 
         {showEmojiPicker && (
           <div className="emoji-picker-container">
-            <EmojiPicker onEmojiClick={handleEmojiClick} />
+            <EmojiPicker onEmojiClick={(emoji) => setText((prev) => prev + emoji.emoji)} />
           </div>
         )}
       </div>
