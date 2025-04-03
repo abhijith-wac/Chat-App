@@ -33,7 +33,7 @@ const Chat = () => {
   const [editingMessageId, setEditingMessageId] = useAtom(editingMessageAtom);
   const [editText, setEditText] = useAtom(editTextAtom);
   const [userDetails] = useAtom(userDetailsAtom);
-  const [isTyping, setIsTyping] = useState(false); // Local state for typing indicator
+  const [isTyping, setIsTyping] = useState(false);
 
   useUserDetails(userId);
   const chatId = [loggedInUser?.uid, userId].sort().join("_");
@@ -43,6 +43,8 @@ const Chat = () => {
     firstUnseenMessageRef,
     handleSendMessage,
     handleKeyDown,
+    handleKeyUp,
+    handleBlur,
     startEditing,
     cancelEditing,
     saveEditedMessage,
@@ -51,7 +53,6 @@ const Chat = () => {
     markMessagesAsSeen
   } = useChatFunctions(chatId, loggedInUser, userId);
 
-  // Listen for typing status from other user
   useEffect(() => {
     if (!chatId || !loggedInUser) return;
 
@@ -59,15 +60,15 @@ const Chat = () => {
     const unsubscribe = onSnapshot(chatRef, (doc) => {
       const data = doc.data();
       if (data?.typing) {
-        // Check if the other user (not the logged-in user) is typing
         setIsTyping(!!data.typing[userId] && userId !== loggedInUser.uid);
+      } else {
+        setIsTyping(false);
       }
     });
 
     return () => unsubscribe();
   }, [chatId, loggedInUser, userId]);
 
-  // Mark messages as seen
   useEffect(() => {
     if (loggedInUser && messages.length > 0) {
       markMessagesAsSeen();
@@ -232,6 +233,8 @@ const Chat = () => {
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
+            onKeyUp={handleKeyUp}
+            onBlur={handleBlur}
             className="message-input"
           />
         </div>

@@ -91,7 +91,8 @@ const useChatFunctions = (chatId, loggedInUser, userId) => {
       await updateDoc(chatRef, {
         lastMessage: text.trim(),
         lastMessageTimestamp: serverTimestamp(),
-        lastSenderId: loggedInUser.uid
+        lastSenderId: loggedInUser.uid,
+        [`typing.${loggedInUser.uid}`]: false // Reset typing on send
       });
 
       setText("");
@@ -106,12 +107,22 @@ const useChatFunctions = (chatId, loggedInUser, userId) => {
     if (!loggedInUser) return;
 
     const chatRef = doc(db, "chats", chatId);
+    // Set typing to true on any key press
+    await updateDoc(chatRef, { [`typing.${loggedInUser.uid}`]: true });
+
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      await updateDoc(chatRef, { [`typing.${loggedInUser.uid}`]: true });
       editingMessageId ? saveEditedMessage() : handleSendMessage();
-      await updateDoc(chatRef, { [`typing.${loggedInUser.uid}`]: false });
     }
+  };
+
+  const handleKeyUp = async () => {
+    if (!loggedInUser) return;
+    const chatRef = doc(db, "chats", chatId);
+    // Reset typing after a short delay
+    setTimeout(async () => {
+      await updateDoc(chatRef, { [`typing.${loggedInUser.uid}`]: false });
+    }, 1000);
   };
 
   const handleBlur = async () => {
@@ -139,6 +150,8 @@ const useChatFunctions = (chatId, loggedInUser, userId) => {
         edited: true,
         editedAt: serverTimestamp(),
       });
+      const chatRef = doc(db, "chats", chatId);
+      await updateDoc(chatRef, { [`typing.${loggedInUser.uid}`]: false });
       cancelEditing();
     } catch (error) {
       console.error("Error updating message:", error);
@@ -175,7 +188,9 @@ const useChatFunctions = (chatId, loggedInUser, userId) => {
     messagesEndRef, 
     firstUnseenMessageRef, 
     handleSendMessage, 
-    handleKeyDown, 
+    handleKeyDown,
+    handleKeyUp,
+    handleBlur,
     startEditing, 
     cancelEditing, 
     saveEditedMessage, 
