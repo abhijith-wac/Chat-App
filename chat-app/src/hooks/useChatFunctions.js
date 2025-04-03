@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useAtom } from "jotai";
 import { 
   messagesAtom, textAtom, emojiPickerAtom, selectedMessageAtom, 
@@ -18,6 +18,7 @@ const useChatFunctions = (chatId, loggedInUser, userId) => {
   const [selectedMessage, setSelectedMessage] = useAtom(selectedMessageAtom);
   const [editingMessageId, setEditingMessageId] = useAtom(editingMessageAtom);
   const [editText, setEditText] = useAtom(editTextAtom);
+  const [isOtherUserTyping, setIsOtherUserTyping] = useState(false); // New state for typing
 
   const messagesEndRef = useRef(null);
   const firstUnseenMessageRef = useRef(null);
@@ -27,15 +28,28 @@ const useChatFunctions = (chatId, loggedInUser, userId) => {
 
     const messagesRef = collection(db, "chats", chatId, "messages");
     const q = query(messagesRef, orderBy("timestamp", "asc"));
+    const chatRef = doc(db, "chats", chatId);
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribeMessages = onSnapshot(q, (snapshot) => {
       const newMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setMessages(newMessages);
       updateMessageStatus(newMessages);
     });
 
-    return unsubscribe;
-  }, [chatId, loggedInUser, setMessages]);
+    const unsubscribeChat = onSnapshot(chatRef, (doc) => {
+      const data = doc.data();
+      if (data?.typing) {
+        setIsOtherUserTyping(!!data.typing[userId] && userId !== loggedInUser.uid);
+      } else {
+        setIsOtherUserTyping(false);
+      }
+    });
+
+    return () => {
+      unsubscribeMessages();
+      unsubscribeChat();
+    };
+  }, [chatId, loggedInUser, setMessages, userId]);
 
   const updateMessageStatus = async (msgs) => {
     if (!msgs?.length || !loggedInUser) return;
@@ -92,7 +106,7 @@ const useChatFunctions = (chatId, loggedInUser, userId) => {
         lastMessage: text.trim(),
         lastMessageTimestamp: serverTimestamp(),
         lastSenderId: loggedInUser.uid,
-        [`typing.${loggedInUser.uid}`]: false // Reset typing on send
+        [`typing.${loggedInUser.uid}`]: false
       });
 
       setText("");
@@ -107,7 +121,6 @@ const useChatFunctions = (chatId, loggedInUser, userId) => {
     if (!loggedInUser) return;
 
     const chatRef = doc(db, "chats", chatId);
-    // Set typing to true on any key press
     await updateDoc(chatRef, { [`typing.${loggedInUser.uid}`]: true });
 
     if (e.key === "Enter" && !e.shiftKey) {
@@ -119,7 +132,6 @@ const useChatFunctions = (chatId, loggedInUser, userId) => {
   const handleKeyUp = async () => {
     if (!loggedInUser) return;
     const chatRef = doc(db, "chats", chatId);
-    // Reset typing after a short delay
     setTimeout(async () => {
       await updateDoc(chatRef, { [`typing.${loggedInUser.uid}`]: false });
     }, 1000);
@@ -196,7 +208,8 @@ const useChatFunctions = (chatId, loggedInUser, userId) => {
     saveEditedMessage, 
     deleteMessage, 
     markMessagesAsSeen, 
-    formatLastSeen 
+    formatLastSeen,
+    isOtherUserTyping // Add typing status to return value
   };
 };
 

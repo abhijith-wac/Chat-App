@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { Form, Button } from "react-bootstrap";
@@ -18,8 +18,6 @@ import useUserDetails from "../hooks/useUserDetails";
 import { FaPaperPlane, FaArrowLeft, FaEdit, FaTrash, FaRegSmile } from "react-icons/fa";
 import { BsImageFill, BsMic } from "react-icons/bs";
 import EmojiPicker from "emoji-picker-react";
-import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "../services/config";
 import "../styles/chat.css";
 
 const Chat = () => {
@@ -33,7 +31,6 @@ const Chat = () => {
   const [editingMessageId, setEditingMessageId] = useAtom(editingMessageAtom);
   const [editText, setEditText] = useAtom(editTextAtom);
   const [userDetails] = useAtom(userDetailsAtom);
-  const [isTyping, setIsTyping] = useState(false);
 
   useUserDetails(userId);
   const chatId = [loggedInUser?.uid, userId].sort().join("_");
@@ -50,24 +47,9 @@ const Chat = () => {
     saveEditedMessage,
     deleteMessage,
     formatLastSeen,
-    markMessagesAsSeen
+    markMessagesAsSeen,
+    isOtherUserTyping // Get typing status from hook
   } = useChatFunctions(chatId, loggedInUser, userId);
-
-  useEffect(() => {
-    if (!chatId || !loggedInUser) return;
-
-    const chatRef = doc(db, "chats", chatId);
-    const unsubscribe = onSnapshot(chatRef, (doc) => {
-      const data = doc.data();
-      if (data?.typing) {
-        setIsTyping(!!data.typing[userId] && userId !== loggedInUser.uid);
-      } else {
-        setIsTyping(false);
-      }
-    });
-
-    return () => unsubscribe();
-  }, [chatId, loggedInUser, userId]);
 
   useEffect(() => {
     if (loggedInUser && messages.length > 0) {
@@ -102,7 +84,7 @@ const Chat = () => {
           <div className="user-info">
             <h5>{userDetails?.displayName || "User"}</h5>
             <span className="user-status">
-              {isTyping 
+              {isOtherUserTyping 
                 ? "Typing..." 
                 : userDetails?.online
                   ? "Active now"
