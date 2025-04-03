@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import useLoginForm from "../hooks/useLoginForm";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "../styles/login.css";
 
 const Login = () => {
   const { isSignup, setIsSignup, formData, error, handleChange, handleSubmit, loading } = useLoginForm();
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="login-container">
@@ -38,15 +40,22 @@ const Login = () => {
             />
           </div>
 
-          <div className="input-group">
+          <div className="input-group password-group">
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="password"
               placeholder="Password"
               value={formData.password}
               onChange={handleChange}
               required
             />
+            <button
+              type="button"
+              className="toggle-password-btn"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
           </div>
 
           {isSignup && (

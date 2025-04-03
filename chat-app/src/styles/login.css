@@ -117,6 +117,27 @@ h2 {
   cursor: pointer;
   font-weight: bold;
 }
+/* Password Input Field with Toggle */
+.password-group {
+  position: relative;
+}
+
+.toggle-password-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #888;
+}
+
+.toggle-password-btn:hover {
+  color: #333;
+}
+
 
 .toggle-link:hover {
   text-decoration: underline;
