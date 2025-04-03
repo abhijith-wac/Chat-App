@@ -49,7 +49,7 @@ const Chat = () => {
     markMessagesAsSeen
   } = useChatFunctions(chatId, loggedInUser, userId);
 
-   useEffect(() => {
+  useEffect(() => {
     if (loggedInUser && messages.length > 0) {
       markMessagesAsSeen();
     }
@@ -66,7 +66,7 @@ const Chat = () => {
 
   return (
     <div className="chat-app-container">
-       <div className="chat-header">
+      <div className="chat-header">
         <div className="chat-header-left">
           <Button className="back-button" variant="link" onClick={() => navigate(-1)}>
             <FaArrowLeft />
@@ -92,28 +92,28 @@ const Chat = () => {
         </div>
       </div>
 
-       <div className="messages-container" onClick={() => setSelectedMessage(null)}>
+      <div className="messages-container" onClick={() => setSelectedMessage(null)}>
         {Object.entries(groupedMessages).map(([date, dateMessages]) => (
           <div key={date} className="message-date-group">
             <div className="date-divider">
               <span>{date}</span>
             </div>
-            
+
             {dateMessages.map((msg, index) => {
               const isSender = msg.senderId === loggedInUser?.uid;
               const isFirstUnseen =
                 msg.receiverId === loggedInUser?.uid &&
                 msg.status === "delivered" &&
                 (index === 0 || dateMessages[index - 1].status === "seen");
-              
+
               return (
                 <React.Fragment key={msg.id}>
-                   {isFirstUnseen && index > 0 && (
+                  {isFirstUnseen && index > 0 && (
                     <div className="unread-divider">
                       <span>Unread Messages</span>
                     </div>
                   )}
-                  
+
                   <div
                     className={`message-wrapper ${isSender ? "sender" : "receiver"}`}
                     ref={isFirstUnseen ? firstUnseenMessageRef : null}
@@ -156,7 +156,7 @@ const Chat = () => {
                                 ? format(new Date(msg.timestamp.seconds * 1000), "h:mm a")
                                 : ""}
                             </span>
-                             {isSender && (
+                            {isSender && (
                               <span className="message-status">
                                 {msg.status === "sent" && <span className="status-sent">✓</span>}
                                 {msg.status === "delivered" && <span className="status-delivered">✓✓</span>}
@@ -167,18 +167,23 @@ const Chat = () => {
                         </div>
                       )}
                     </div>
-                    
-                     {isSender && selectedMessage === msg.id && (
-                      <div className="message-options">
-                        <Button variant="outline-primary" size="sm" onClick={() => startEditing(msg)}>
-                          <FaEdit /> Edit
-                        </Button>
-                        <Button variant="outline-danger" size="sm" onClick={() => deleteMessage(msg.id)}>
-                          <FaTrash /> Delete
-                        </Button>
-                      </div>
-                    )}
+
+                    {(msg.senderId === loggedInUser?.uid || msg.receiverId === loggedInUser?.uid) &&
+                      selectedMessage === msg.id && (
+                        <div className="message-options">
+                          {msg.senderId === loggedInUser?.uid && (
+                            <Button variant="outline-primary" size="sm" onClick={() => startEditing(msg)}>
+                              <FaEdit /> Edit
+                            </Button>
+                          )}
+
+                          <Button variant="outline-danger" size="sm" onClick={() => deleteMessage(chatId, msg.id, loggedInUser)}>
+                            <FaTrash /> Delete
+                          </Button>
+                        </div>
+                      )}
                   </div>
+
                 </React.Fragment>
               );
             })}
@@ -187,7 +192,7 @@ const Chat = () => {
         <div ref={messagesEndRef} />
       </div>
 
-       <div className="chat-input-area">
+      <div className="chat-input-area">
         <div className="input-actions">
           <Button
             variant="link"

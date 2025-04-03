@@ -166,14 +166,35 @@ const useChatFunctions = (chatId, loggedInUser, userId) => {
     }
   };
 
-  const deleteMessage = async (messageId) => {
+  const deleteMessage = async (chatId, messageId, loggedInUser) => {
     try {
-      await deleteDoc(doc(db, "chats", chatId, "messages", messageId));
-      setSelectedMessage(null);
+      const messageRef = doc(db, "chats", chatId, "messages", messageId);
+      const messageSnap = await getDoc(messageRef);
+  
+      if (!messageSnap.exists()) return; // Message doesn't exist
+  
+      const messageData = messageSnap.data();
+  
+      // ✅ Allow both sender and receiver to delete the message
+      if (messageData.senderId === loggedInUser.uid || messageData.receiverId === loggedInUser.uid) {
+        if (messageData.isDeleted) {
+          // ✅ If already marked as deleted, remove permanently
+          await deleteDoc(messageRef);
+        } else {
+          // ❌ Otherwise, mark it as deleted
+          await updateDoc(messageRef, {
+            text: "This message was deleted",
+            isDeleted: true,
+          });
+        }
+      } else {
+        console.warn("You are not allowed to delete this message.");
+      }
     } catch (error) {
       console.error("Error deleting message:", error);
     }
   };
+  
 
   const formatLastSeen = (lastSeenDate) => {
     if (!lastSeenDate) return "Offline";
