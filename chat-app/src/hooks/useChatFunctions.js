@@ -2,8 +2,8 @@ import { useRef, useState, useEffect } from "react";
 import { useAtom } from "jotai";
 import { 
   messagesAtom, textAtom, emojiPickerAtom, selectedMessageAtom, 
-  editingMessageAtom, editTextAtom 
-} from "../atoms/chatAtom";
+  editingMessageAtom, editTextAtom, isOtherUserTypingAtom 
+} from "../atoms/chatAtom"; // Import the new atom
 import { 
   collection, query, orderBy, onSnapshot, updateDoc, doc, getDoc,
   setDoc, addDoc, serverTimestamp, deleteDoc
@@ -18,7 +18,7 @@ const useChatFunctions = (chatId, loggedInUser, userId) => {
   const [selectedMessage, setSelectedMessage] = useAtom(selectedMessageAtom);
   const [editingMessageId, setEditingMessageId] = useAtom(editingMessageAtom);
   const [editText, setEditText] = useAtom(editTextAtom);
-  const [isOtherUserTyping, setIsOtherUserTyping] = useState(false); // New state for typing
+  const [isOtherUserTyping, setIsOtherUserTyping] = useAtom(isOtherUserTypingAtom); // Use atom for typing status
 
   const messagesEndRef = useRef(null);
   const firstUnseenMessageRef = useRef(null);
@@ -49,7 +49,7 @@ const useChatFunctions = (chatId, loggedInUser, userId) => {
       unsubscribeMessages();
       unsubscribeChat();
     };
-  }, [chatId, loggedInUser, setMessages, userId]);
+  }, [chatId, loggedInUser, setMessages, userId, setIsOtherUserTyping]);
 
   const updateMessageStatus = async (msgs) => {
     if (!msgs?.length || !loggedInUser) return;

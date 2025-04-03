@@ -1,23 +1,23 @@
-// Settings.jsx
-import React, { useState } from "react";
+import React from "react";
 import { Button, ListGroup } from "react-bootstrap";
 import { FaCog, FaUser, FaSignOutAlt } from "react-icons/fa";
 import { useAtom } from "jotai";
 import { userAtom } from "../atoms/authAtom";
+import { showMenuAtom } from "../atoms/menuAtom"; // Import the atom
 import { useNavigate } from "react-router-dom";
 import useAuth from "../atoms/useAuth";
 import '../styles/settings.css';
 
 const Settings = () => {
-  const [showMenu, setShowMenu] = useState(false);
+  const [showMenu, setShowMenu] = useAtom(showMenuAtom); // Use the atom for managing showMenu state
   const [user, setUser] = useAtom(userAtom);
   const navigate = useNavigate();
-  const { logout } = useAuth(); 
+  const { logout } = useAuth();
 
   const handleLogout = async () => {
-    await logout(); 
-    setUser(null); 
-    navigate("/"); 
+    await logout();
+    setUser(null);
+    navigate("/");
   };
 
   return (

@@ -12,6 +12,7 @@ import {
   editingMessageAtom,
   editTextAtom,
   userDetailsAtom,
+  isOtherUserTypingAtom,
 } from "../atoms/chatAtom";
 import useChatFunctions from "../hooks/useChatFunctions";
 import useUserDetails from "../hooks/useUserDetails";
@@ -48,8 +49,10 @@ const Chat = () => {
     deleteMessage,
     formatLastSeen,
     markMessagesAsSeen,
-    isOtherUserTyping // Get typing status from hook
   } = useChatFunctions(chatId, loggedInUser, userId);
+
+  const [isOtherUserTyping] = useAtom(isOtherUserTypingAtom); 
+
 
   useEffect(() => {
     if (loggedInUser && messages.length > 0) {
