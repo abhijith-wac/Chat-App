@@ -2,7 +2,8 @@ import { useRef, useState, useEffect } from "react";
 import { useAtom } from "jotai";
 import { 
   messagesAtom, textAtom, emojiPickerAtom, selectedMessageAtom, 
-  editingMessageAtom, editTextAtom, isOtherUserTypingAtom 
+  editingMessageAtom, editTextAtom, isOtherUserTypingAtom, 
+  isSendingAtom
 } from "../atoms/chatAtom"; // Import the new atom
 import { 
   collection, query, orderBy, onSnapshot, updateDoc, doc, getDoc,
@@ -13,6 +14,7 @@ import { format, isToday, isYesterday, differenceInDays } from "date-fns";
 
 const useChatFunctions = (chatId, loggedInUser, userId) => {
   const [messages, setMessages] = useAtom(messagesAtom);
+  const [isSending, setIsSending] = useAtom(isSendingAtom);
   const [text, setText] = useAtom(textAtom);
   const [showEmojiPicker, setShowEmojiPicker] = useAtom(emojiPickerAtom);
   const [selectedMessage, setSelectedMessage] = useAtom(selectedMessageAtom);
@@ -85,15 +87,16 @@ const useChatFunctions = (chatId, loggedInUser, userId) => {
   }, [messages, loggedInUser?.uid]);
 
   const handleSendMessage = async () => {
-    if (!text.trim() || !loggedInUser) return;
-
+    if (!text.trim() || !loggedInUser || isSending) return;
+  
+    setIsSending(true);
     try {
       const chatRef = doc(db, "chats", chatId);
       const chatDoc = await getDoc(chatRef);
       if (!chatDoc.exists()) {
         await setDoc(chatRef, { createdAt: serverTimestamp() }, { merge: true });
       }
-      
+  
       await addDoc(collection(db, "chats", chatId, "messages"), {
         text: text.trim(),
         senderId: loggedInUser.uid,
@@ -101,21 +104,24 @@ const useChatFunctions = (chatId, loggedInUser, userId) => {
         timestamp: serverTimestamp(),
         status: "sent",
       });
-      
+  
       await updateDoc(chatRef, {
         lastMessage: text.trim(),
         lastMessageTimestamp: serverTimestamp(),
         lastSenderId: loggedInUser.uid,
         [`typing.${loggedInUser.uid}`]: false
       });
-
+  
       setText("");
       setShowEmojiPicker(false);
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     } catch (error) {
       console.error("Error sending message:", error);
+    } finally {
+      setIsSending(false);
     }
   };
+  
 
   const handleKeyDown = async (e) => {
     if (!loggedInUser) return;

@@ -14,6 +14,7 @@ export const editTextAtom = atom("");
 export const selectedMessageAtom = atom(null);
 export const typingAtom = atom(false); // Default to false
 export const isOtherUserTypingAtom = atom(false); // Atom for other user's typing status
+export const isSendingAtom = atom(false);
 
 
 
