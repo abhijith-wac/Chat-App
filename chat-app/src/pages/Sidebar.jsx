@@ -9,7 +9,7 @@ import { selectedUserAtom } from "../atoms/sidebarAtom";
 
 const Sidebar = () => {
   const { isOpen, toggleSidebar, handleUserSelect, closeSidebar } = useSidebar();
-  const selectedUserId = useAtomValue(selectedUserAtom);
+  const selectedUserId = useAtomValue(selectedUserAtom    );
 
   return (
     <>

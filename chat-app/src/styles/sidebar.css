@@ -10,8 +10,10 @@
 /* Sidebar */
 .sidebar {
   flex-shrink: 0;
-  width: 240px; /* Reduced width from 280px */
-  background: #2c3e50; /* Changed to match your screenshot */
+  width: 240px;
+  /* Reduced width from 280px */
+  background: #2c3e50;
+  /* Changed to match your screenshot */
   height: 100vh;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   z-index: 1000;
@@ -139,9 +141,10 @@
 /* Toggle button for mobile */
 .sidebar-toggle {
   position: fixed;
-  top: 15px;
-  left: 15px;
-  background-color: #2c3e50;
+  top: 26px;
+  left: 10px;
+  background-color: #17436f;
+  color: white;
   color: white;
   border: none;
   border-radius: 50%;
@@ -162,18 +165,18 @@
   .sidebar-toggle {
     display: flex;
   }
-  
+
   .sidebar {
     position: fixed;
     width: 240px;
     left: -240px;
     height: 100vh !important;
   }
-  
+
   .sidebar.active {
     left: 0;
   }
-  
+
   .main-content {
     width: 100%;
     margin-left: 0;
@@ -184,18 +187,20 @@
 /* Even Smaller Devices */
 @media (max-width: 576px) {
   .sidebar {
-    width: 200px; /* Even smaller for very small screens */
+    width: 200px;
+    /* Even smaller for very small screens */
     left: -200px;
   }
-  
+
   .main-content {
     padding: 0.25rem;
   }
-  
-  .user-name, .settings-section {
+
+  .user-name,
+  .settings-section {
     font-size: 13px;
   }
-  
+
   .user-status {
     font-size: 11px;
   }
