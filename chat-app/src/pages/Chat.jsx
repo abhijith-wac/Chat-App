@@ -51,7 +51,7 @@ const Chat = () => {
     markMessagesAsSeen,
   } = useChatFunctions(chatId, loggedInUser, userId);
 
-  const [isOtherUserTyping] = useAtom(isOtherUserTypingAtom); 
+  const [isOtherUserTyping] = useAtom(isOtherUserTypingAtom);
 
 
   useEffect(() => {
@@ -87,8 +87,8 @@ const Chat = () => {
           <div className="user-info">
             <h5>{userDetails?.displayName || "User"}</h5>
             <span className="user-status">
-              {isOtherUserTyping 
-                ? "Typing..." 
+              {isOtherUserTyping
+                ? "Typing..."
                 : userDetails?.online
                   ? "Active now"
                   : userDetails?.lastSeen
@@ -97,7 +97,22 @@ const Chat = () => {
             </span>
           </div>
         </div>
+
+        <div className="chat-header-right">
+          <div className="avatar-container">
+            <img
+              src={`https://ui-avatars.com/api/?name=${loggedInUser?.displayName || "You"}&background=random`}
+              alt="Your Avatar"
+              className="user-avatar"
+            />
+          </div>
+          <div className="user-info">
+            <h5>{loggedInUser?.displayName || "You"}</h5>
+            <span className="user-status">You</span>
+          </div>
+        </div>
       </div>
+
 
       <div className="messages-container" onClick={() => setSelectedMessage(null)}>
         {Object.entries(groupedMessages).map(([date, dateMessages]) => (

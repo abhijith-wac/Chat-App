@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAtom } from "jotai";
 import { userAtom } from "../atoms/authAtom";
 import { searchQueryAtom } from "../atoms/chatAtom";
@@ -10,6 +10,7 @@ import "../styles/users.css";
 
 const Users = () => {
   const navigate = useNavigate();
+  const { userId: selectedUserId } = useParams(); // Get the selected user ID from URL params
   const [loggedInUser] = useAtom(userAtom);
   const [searchQuery, setSearchQuery] = useAtom(searchQueryAtom);
 
@@ -32,7 +33,7 @@ const Users = () => {
           <ListGroup.Item
             key={user.uid}
             action
-            className="d-flex align-items-center user-item"
+            className={`d-flex align-items-center user-item ${user.uid === selectedUserId ? 'selected-user' : ''}`}
             onClick={() => navigate(`/mainchatpage/chat/${user.uid}`)}
           >
             {user.photoURL ? (

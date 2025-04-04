@@ -26,6 +26,43 @@
     color: #b2bec3;
     font-size: 0.8rem;
   }
+
+  /* Add these styles to your users.css file */
+
+.user-item {
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+  position: relative;
+}
+
+.user-item.selected-user {
+  border-left: 3px solid #1f8600;
+  background-color: rgba(13, 110, 253, 0.1);
+}
+
+/* Ensure text stands out for better visibility */
+.user-item.selected-user .user-info strong {
+  color: #ffffff;
+}
+
+/* For dark themes */
+[data-bs-theme="dark"] .user-item.selected-user {
+  border-left: 3px solid #2a8008;
+  background-color: rgba(37, 107, 15, 0.25);
+}
+
+/* Optional: Add a subtle active indicator dot */
+.user-item.selected-user:after {
+  content: '';
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #086d11;
+}
   
   .user-item .badge {
     background-color: #e74c3c;

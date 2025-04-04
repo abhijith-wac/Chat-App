@@ -18,20 +18,28 @@
   }
   
   .settings-menu {
-    background-color: #34495e;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.2);
+    width: 100% !important; /* Ensures it adapts to sidebar width */
+    min-width: 200px; /* Adjust based on design */
+    max-width: 250px;
+    background: #33415a;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    padding: 5px;
   }
   
+  /* Ensure ListGroup items stretch fully */
   .settings-menu .list-group-item {
-    background-color: transparent;
-    color: #ecf0f1;
-    border: none;
-    border-bottom: 1px solid #40546a;
-    padding: 12px 15px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 10px 15px;
+    box-sizing: border-box;
   }
   
+  .settings-menu .list-group-item:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
   .settings-menu .list-group-item:last-child {
     border-bottom: none;
   }
